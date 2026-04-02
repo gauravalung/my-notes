@@ -41,8 +41,10 @@ body { background: var(--cream); color: var(--ink); font-family: 'DM Sans', sans
 .banner-btn { height: 34px; padding: 0 16px; border-radius: 17px; border: none; font-family: 'DM Sans', sans-serif; font-size: 13px; font-weight: 500; cursor: pointer; transition: all .15s; }
 .banner-btn-yes { background: var(--accent); color: white; }
 .banner-btn-yes:hover { background: #b0531a; }
-.banner-btn-no  { background: transparent; color: var(--ink3); }
+.banner-btn-no   { background: transparent; color: var(--ink3); }
 .banner-btn-no:hover { color: var(--ink); }
+.banner-btn-test { background: var(--green-light); color: var(--green); }
+.banner-btn-test:hover { background: #d0edda; }
 
 .tabs { max-width: 680px; margin: 0 auto; display: flex; gap: 6px; padding: 12px 16px; overflow-x: auto; scrollbar-width: none; }
 .tabs::-webkit-scrollbar { display: none; }
@@ -155,9 +157,10 @@ body { background: var(--cream); color: var(--ink); font-family: 'DM Sans', sans
 <!-- Notification permission banner -->
 <div id="notif-banner">
   <div id="notif-banner-inner">
-    <p>Allow notifications so reminders pop up even when this tab is closed.</p>
+    <p id="banner-msg">Allow notifications so reminders pop up even when this tab is closed.</p>
     <button class="banner-btn banner-btn-yes" id="banner-allow">Turn on reminders</button>
-    <button class="banner-btn banner-btn-no"  id="banner-skip">Not now</button>
+    <button class="banner-btn banner-btn-test" id="banner-test" style="display:none">Send test notification</button>
+    <button class="banner-btn banner-btn-no"  id="banner-skip">Dismiss</button>
   </div>
 </div>
 
@@ -276,36 +279,77 @@ let editForm      = {};
 /* ═══════════════════════════════════════════════════════
    SERVICE WORKER + NOTIFICATIONS
 ═══════════════════════════════════════════════════════ */
-let swReg = null;  // holds the SW registration once ready
+/* ═══════════════════════════════════════════════════════
+   SERVICE WORKER + NOTIFICATIONS
+   Architecture:
+   - Notification() fired directly from the main page (reliable)
+   - setTimeout in main page thread — not SW (SW timers get killed)
+   - SW only used for: offline cache + notification click handling
+═══════════════════════════════════════════════════════ */
+
+let swReg = null;
+let scheduledTimers = {};  // noteId -> setTimeout handle
 
 async function initServiceWorker() {
-  // Show banner immediately — don't wait for SW to load
-  if ('Notification' in window && Notification.permission === 'default') {
-    document.getElementById('notif-banner').style.display = 'block';
-  }
-  // If already granted on a previous visit, register SW silently
+  console.log('[Notes] Init. Notification support:', 'Notification' in window);
+  console.log('[Notes] Permission:', 'Notification' in window ? Notification.permission : 'N/A');
+
+  // Register SW for offline + notification click handling (always)
+  await registerSW();
+
+  // Show the right banner state
+  updateBanner();
+
+  // If already granted, schedule everything now
   if ('Notification' in window && Notification.permission === 'granted') {
-    await registerSW();
+    scheduleAllReminders();
+    fireOverdueReminders();
+  }
+}
+
+function updateBanner() {
+  if (!('Notification' in window)) return;  // browser doesn't support it at all
+  const banner  = document.getElementById('notif-banner');
+  const msg     = document.getElementById('banner-msg');
+  const allow   = document.getElementById('banner-allow');
+  const test    = document.getElementById('banner-test');
+  const dismiss = document.getElementById('banner-skip');
+  const perm    = Notification.permission;
+
+  if (perm === 'default') {
+    msg.textContent = 'Allow notifications so reminders pop up even when this tab is closed.';
+    allow.style.display = '';
+    test.style.display  = 'none';
+    banner.style.display = 'block';
+  } else if (perm === 'granted') {
+    msg.textContent = 'Reminders are on. Send a test to confirm they work on your computer.';
+    allow.style.display = 'none';
+    test.style.display  = '';
+    banner.style.display = 'block';
+  } else if (perm === 'denied') {
+    msg.textContent = 'Notifications are blocked. To fix: click the lock icon in your browser address bar → Notifications → Allow.';
+    allow.style.display = 'none';
+    test.style.display  = 'none';
+    banner.style.display = 'block';
   }
 }
 
 async function registerSW() {
-  if (!('serviceWorker' in navigator)) return;
+  if (!('serviceWorker' in navigator)) {
+    console.warn('[Notes] Service Worker not supported');
+    return;
+  }
   try {
-    // Relative path — works on GitHub Pages subdirectories like /my-notes/
     swReg = await navigator.serviceWorker.register('./sw.js', { scope: './' });
-    console.log('[SW] Registered, scope:', swReg.scope);
-
+    console.log('[Notes] SW registered, scope:', swReg.scope);
     navigator.serviceWorker.addEventListener('message', e => {
       if (!e.data) return;
-      if (e.data.type === 'OPEN_NOTE' && e.data.noteId) openView(Number(e.data.noteId));
-      if (e.data.type === 'MARK_DONE' && e.data.noteId) markReminderDone(Number(e.data.noteId));
+      if (e.data.type === 'OPEN_NOTE') openView(Number(e.data.noteId));
+      if (e.data.type === 'MARK_DONE') markReminderDone(Number(e.data.noteId));
     });
-
     handleURLParams();
-    scheduleAllReminders();
   } catch (err) {
-    console.warn('[SW] Registration failed:', err);
+    console.error('[Notes] SW registration failed:', err);
   }
 }
 
@@ -313,67 +357,137 @@ function handleURLParams() {
   const params = new URLSearchParams(location.search);
   const openId = params.get('open');
   const doneId = params.get('done');
-  if (openId) { openView(Number(openId)); history.replaceState({}, '', '/'); }
-  if (doneId) { markReminderDone(Number(doneId)); history.replaceState({}, '', '/'); }
+  if (openId) { openView(Number(openId)); history.replaceState({}, '', location.pathname); }
+  if (doneId) { markReminderDone(Number(doneId)); history.replaceState({}, '', location.pathname); }
 }
 
 async function requestNotificationPermission() {
-  const result = await Notification.requestPermission();
-  document.getElementById('notif-banner').style.display = 'none';
-  if (result === 'granted') {
-    await registerSW();   // register SW now that we have permission
-    toast('Reminders are on! You will get notified even when this tab is closed.');
-  } else {
-    toast('Notifications blocked — reminders will still show inside the app when it is open.');
+  console.log('[Notes] Requesting notification permission…');
+  try {
+    const result = await Notification.requestPermission();
+    console.log('[Notes] Permission result:', result);
+    updateBanner();
+    if (result === 'granted') {
+      scheduleAllReminders();
+      fireOverdueReminders();
+      toast('Reminders are on! You will get a desktop pop-up at reminder time.');
+      // Fire a test immediately so they see it working
+      setTimeout(() => sendTestNotification(), 1500);
+    } else if (result === 'denied') {
+      toast('Notifications blocked. Click the lock icon in the address bar to change this.');
+    } else {
+      toast('Notifications not enabled. You can try again from the banner.');
+    }
+  } catch (err) {
+    console.error('[Notes] Permission request failed:', err);
+    toast('Could not request notification permission. Try Chrome or Edge.');
   }
 }
 
-/* Send all pending reminders to the SW so it can schedule them */
-function scheduleAllReminders() {
-  if (!swReg || !swReg.active) {
-    // SW not active yet — retry shortly
-    setTimeout(scheduleAllReminders, 500);
+function sendTestNotification() {
+  if (Notification.permission !== 'granted') {
+    toast('Notifications are not allowed yet. Click "Turn on reminders" first.');
     return;
   }
+  console.log('[Notes] Sending test notification');
+  try {
+    const notif = new Notification('My Notes — Test ✓', {
+      body: 'Reminders are working! You will see a pop-up like this when a reminder is due.',
+      icon: './icon.png',
+      tag: 'test-notif',
+      requireInteraction: false,
+    });
+    notif.onclick = () => { window.focus(); notif.close(); };
+    toast('Test notification sent — check your desktop!');
+  } catch (err) {
+    console.error('[Notes] Test notification failed:', err);
+    toast('Notification failed: ' + err.message + '. Make sure you are using Chrome or Edge.');
+  }
+}
+
+/* Schedule a precise setTimeout for each future reminder in the main thread */
+function scheduleAllReminders() {
+  console.log('[Notes] Scheduling reminders…');
+  let count = 0;
+  for (const n of notes) {
+    if (scheduleOneReminder(n)) count++;
+  }
+  console.log('[Notes] Scheduled', count, 'reminder(s)');
+}
+
+function scheduleOneReminder(note) {
+  // Clear any existing timer first
+  if (scheduledTimers[note.id]) {
+    clearTimeout(scheduledTimers[note.id]);
+    delete scheduledTimers[note.id];
+  }
+  if (!note.reminderEnabled || note.reminderDone || !note.reminderTime) return false;
+  if (Notification.permission !== 'granted') return false;
+
+  const delay = new Date(note.reminderTime).getTime() - Date.now();
+  if (delay < 0) return false;  // past — handled by fireOverdueReminders
+
+  console.log('[Notes] Reminder "' + note.title + '" scheduled in', Math.round(delay/1000), 'seconds');
+  scheduledTimers[note.id] = setTimeout(() => {
+    delete scheduledTimers[note.id];
+    const fresh = notes.find(x => x.id === note.id);
+    if (!fresh || fresh.reminderDone) return;
+    console.log('[Notes] Firing reminder:', fresh.title);
+    fireDesktopNotification(fresh, false);
+  }, delay);
+  return true;
+}
+
+/* Fire any reminder that was missed while the browser tab was closed */
+function fireOverdueReminders() {
   const now = Date.now();
   for (const n of notes) {
     if (!n.reminderEnabled || n.reminderDone || !n.reminderTime) continue;
     const rt = new Date(n.reminderTime).getTime();
-    if (rt > now) {
-      swReg.active.postMessage({
-        type: 'SCHEDULE_REMINDER',
-        noteId: n.id,
-        title: n.title,
-        body: n.body,
-        reminderTime: n.reminderTime,
-      });
+    if (rt < now && rt > now - 8 * 3600000) {  // missed in last 8 hours
+      console.log('[Notes] Firing overdue reminder:', n.title);
+      fireDesktopNotification(n, true);
+      break;  // one at a time
     }
   }
 }
 
-/* Call this whenever a note's reminder changes */
-function syncReminder(note) {
-  if (!swReg || !swReg.active || Notification.permission !== 'granted') return;
-  if (note.reminderEnabled && !note.reminderDone && note.reminderTime) {
-    swReg.active.postMessage({
-      type: 'SCHEDULE_REMINDER',
-      noteId: note.id,
-      title: note.title,
-      body: note.body,
-      reminderTime: note.reminderTime,
-    });
-  } else {
-    swReg.active.postMessage({ type: 'CANCEL_REMINDER', noteId: note.id });
+function fireDesktopNotification(note, overdue) {
+  if (Notification.permission !== 'granted') {
+    console.warn('[Notes] Cannot fire — permission not granted');
+    return;
   }
+  const title = overdue ? '⏰ Missed: ' + note.title : '🔔 ' + note.title;
+  const body  = note.body ? note.body.slice(0, 120) : 'Tap to open this note.';
+  try {
+    const notif = new Notification(title, {
+      body,
+      icon: './icon.png',
+      tag: 'reminder-' + note.id,
+      requireInteraction: true,  // stays until dismissed
+    });
+    notif.onclick = () => { window.focus(); openView(note.id); notif.close(); };
+    notif.onerror = (e) => console.error('[Notes] Notification error:', e);
+    console.log('[Notes] Desktop notification shown:', title);
+  } catch (err) {
+    console.error('[Notes] Notification() threw:', err);
+  }
+  // Also show the in-app popup as backup
+  showInAppNotif(note);
 }
 
 function markReminderDone(id) {
   const n = notes.find(x => x.id === id);
   if (!n) return;
   n.reminderDone = true;
+  if (scheduledTimers[id]) { clearTimeout(scheduledTimers[id]); delete scheduledTimers[id]; }
   save(); renderNotes();
   if (activeNoteId === id) openView(id);
   toast('Reminder marked done!');
+}
+
+function syncReminder(note) {
+  scheduleOneReminder(note);
 }
 
 /* ═══════════════════════════════════════════════════════
@@ -789,6 +903,7 @@ setTimeout(checkOverdueOnce, 1500);
    NOTIFICATION BANNER BUTTONS
 ═══════════════════════════════════════════════════════ */
 document.getElementById('banner-allow').addEventListener('click', requestNotificationPermission);
+document.getElementById('banner-test').addEventListener('click', sendTestNotification);
 document.getElementById('banner-skip').addEventListener('click', () => {
   document.getElementById('notif-banner').style.display = 'none';
 });
