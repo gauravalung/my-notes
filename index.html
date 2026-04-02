@@ -279,31 +279,31 @@ let editForm      = {};
 let swReg = null;  // holds the SW registration once ready
 
 async function initServiceWorker() {
+  // Show banner immediately — don't wait for SW to load
+  if ('Notification' in window && Notification.permission === 'default') {
+    document.getElementById('notif-banner').style.display = 'block';
+  }
+  // If already granted on a previous visit, register SW silently
+  if ('Notification' in window && Notification.permission === 'granted') {
+    await registerSW();
+  }
+}
+
+async function registerSW() {
   if (!('serviceWorker' in navigator)) return;
   try {
-    swReg = await navigator.serviceWorker.register('/sw.js');
-    console.log('[SW] Registered');
+    // Relative path — works on GitHub Pages subdirectories like /my-notes/
+    swReg = await navigator.serviceWorker.register('./sw.js', { scope: './' });
+    console.log('[SW] Registered, scope:', swReg.scope);
 
-    // Listen for messages from the SW (e.g. "open this note", "mark done")
     navigator.serviceWorker.addEventListener('message', e => {
       if (!e.data) return;
-      if (e.data.type === 'OPEN_NOTE' && e.data.noteId) {
-        openView(Number(e.data.noteId));
-      }
-      if (e.data.type === 'MARK_DONE' && e.data.noteId) {
-        markReminderDone(Number(e.data.noteId));
-      }
+      if (e.data.type === 'OPEN_NOTE' && e.data.noteId) openView(Number(e.data.noteId));
+      if (e.data.type === 'MARK_DONE' && e.data.noteId) markReminderDone(Number(e.data.noteId));
     });
 
-    // Check URL params for actions triggered when app was closed
     handleURLParams();
-
-    // Show permission banner if not yet decided
-    if (Notification.permission === 'default') {
-      document.getElementById('notif-banner').style.display = 'block';
-    } else if (Notification.permission === 'granted') {
-      scheduleAllReminders();
-    }
+    scheduleAllReminders();
   } catch (err) {
     console.warn('[SW] Registration failed:', err);
   }
@@ -321,10 +321,10 @@ async function requestNotificationPermission() {
   const result = await Notification.requestPermission();
   document.getElementById('notif-banner').style.display = 'none';
   if (result === 'granted') {
-    scheduleAllReminders();
+    await registerSW();   // register SW now that we have permission
     toast('Reminders are on! You will get notified even when this tab is closed.');
   } else {
-    toast('Notifications blocked — reminders will still appear inside the app when it is open.');
+    toast('Notifications blocked — reminders will still show inside the app when it is open.');
   }
 }
 
