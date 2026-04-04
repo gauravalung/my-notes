@@ -1,23 +1,12 @@
-/* ═══════════════════════════════════════════════════════════
-   My Notes — Service Worker  (v2)
+/* My Notes — Service Worker v3
+   Handles: offline caching + notification clicks only.
+   Scheduling is done by the main page via swReg.showNotification(). */
 
-   Responsibilities:
-   1. Cache the app shell so it loads offline
-   2. Handle notification CLICKS (open note / mark done)
-
-   NOT responsible for scheduling — the main page does that
-   via Notification API directly. SW timers are unreliable.
-═══════════════════════════════════════════════════════════ */
-
-const CACHE = 'mynotes-v2';
-const ASSETS = ['./', './index.html'];
+const CACHE = 'mynotes-v3';
+const ASSETS = ['./', './index.html', './sw.js', './manifest.json'];
 
 self.addEventListener('install', e => {
-  e.waitUntil(
-    caches.open(CACHE)
-      .then(c => c.addAll(ASSETS))
-      .then(() => self.skipWaiting())
-  );
+  e.waitUntil(caches.open(CACHE).then(c => c.addAll(ASSETS)).then(() => self.skipWaiting()));
 });
 
 self.addEventListener('activate', e => {
@@ -30,36 +19,21 @@ self.addEventListener('activate', e => {
 
 self.addEventListener('fetch', e => {
   if (e.request.method !== 'GET') return;
-  e.respondWith(
-    caches.match(e.request).then(cached => cached || fetch(e.request))
-  );
+  e.respondWith(caches.match(e.request).then(r => r || fetch(e.request)));
 });
 
-/* ── Single, correct notificationclick handler ── */
 self.addEventListener('notificationclick', e => {
   e.notification.close();
   const noteId = e.notification.data && e.notification.data.noteId;
-  const action  = e.action;
-
+  const url = noteId ? './?open=' + noteId : './';
   e.waitUntil(
     clients.matchAll({ type: 'window', includeUncontrolled: true }).then(list => {
       const existing = list.find(c => c.url.includes(self.registration.scope));
-
-      if (action === 'done' && noteId) {
-        // Tell the open tab to mark it done
-        if (existing) {
-          existing.postMessage({ type: 'MARK_DONE', noteId });
-          return existing.focus();
-        }
-        return clients.openWindow('./?done=' + noteId);
-      }
-
-      // Default: open the note
       if (existing) {
         if (noteId) existing.postMessage({ type: 'OPEN_NOTE', noteId });
         return existing.focus();
       }
-      return clients.openWindow(noteId ? './?open=' + noteId : './');
+      return clients.openWindow(url);
     })
   );
 });
