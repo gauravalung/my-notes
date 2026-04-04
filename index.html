@@ -6,7 +6,6 @@
 <title>My Notes</title>
 <meta name="theme-color" content="#FAF8F3">
 <meta name="apple-mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-status-bar-style" content="default">
 <meta name="apple-mobile-web-app-title" content="My Notes">
 <link rel="manifest" href="manifest.json">
 <link href="https://fonts.googleapis.com/css2?family=Lora:ital,wght@0,400;0,600;1,400&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
@@ -19,68 +18,73 @@
   --green: #2D6A4F; --green-light: #E8F5EE;
   --red: #B5361E; --red-light: #FDECEA;
   --border: rgba(44,40,32,0.12); --border2: rgba(44,40,32,0.07);
-  --shadow2: 0 4px 24px rgba(44,40,32,0.12);
+  --shadow: 0 4px 24px rgba(44,40,32,0.12);
   --r: 14px; --r2: 10px;
 }
 html { font-size: 16px; }
-body { background: var(--cream); color: var(--ink); font-family: 'DM Sans', sans-serif; font-weight: 400; min-height: 100vh; padding-bottom: 120px; }
+body { background: var(--cream); color: var(--ink); font-family: 'DM Sans', sans-serif; min-height: 100vh; padding-bottom: 120px; }
 
+/* ── BANNER ── */
+#banner { display: none; border-bottom: 1px solid rgba(201,96,26,.2); padding: 12px 16px; }
+#banner.default { background: var(--accent-light); }
+#banner.granted { background: var(--green-light); }
+#banner.denied  { background: var(--red-light); }
+#banner-inner { max-width: 680px; margin: 0 auto; display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+#banner-msg { font-size: 13px; flex: 1; min-width: 180px; line-height: 1.5; }
+#banner.default #banner-msg { color: var(--accent); }
+#banner.granted #banner-msg { color: var(--green); }
+#banner.denied  #banner-msg { color: var(--red); }
+.bbtn { height: 34px; padding: 0 16px; border-radius: 17px; border: none; font-family: 'DM Sans', sans-serif; font-size: 13px; font-weight: 500; cursor: pointer; white-space: nowrap; }
+#btn-allow { background: var(--accent); color: white; }
+#btn-test  { background: var(--green); color: white; display: none; }
+#btn-dismiss { background: transparent; color: var(--ink3); }
+#btn-dismiss:hover { color: var(--ink); }
+
+/* ── TOP BAR ── */
 .topbar { background: var(--cream); border-bottom: 1px solid var(--border); position: sticky; top: 0; z-index: 100; padding: 0 16px; }
 .topbar-inner { max-width: 680px; margin: 0 auto; display: flex; align-items: center; gap: 12px; height: 60px; }
-.app-title { font-family: 'Lora', serif; font-size: 22px; color: var(--ink); flex-shrink: 0; letter-spacing: -0.3px; }
+.app-title { font-family: 'Lora', serif; font-size: 22px; flex-shrink: 0; letter-spacing: -0.3px; }
 .search-wrap { flex: 1; position: relative; }
-.search-wrap svg { position: absolute; left: 12px; top: 50%; transform: translateY(-50%); pointer-events: none; opacity: 0.4; }
+.search-wrap svg { position: absolute; left: 12px; top: 50%; transform: translateY(-50%); pointer-events: none; opacity: .4; }
 #search { width: 100%; height: 40px; border: 1px solid var(--border); border-radius: 20px; background: var(--cream2); padding: 0 14px 0 38px; font-family: 'DM Sans', sans-serif; font-size: 14px; color: var(--ink); outline: none; transition: border-color .15s, box-shadow .15s; }
 #search::placeholder { color: var(--ink3); }
 #search:focus { border-color: var(--accent); box-shadow: 0 0 0 3px rgba(201,96,26,.12); }
 
-/* Notification permission banner */
-#notif-banner { background: var(--accent-light); border-bottom: 1px solid rgba(201,96,26,.2); padding: 12px 16px; display: none; }
-#notif-banner-inner { max-width: 680px; margin: 0 auto; display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
-#notif-banner p { font-size: 13px; color: var(--ink2); flex: 1; min-width: 200px; line-height: 1.5; }
-.banner-btn { height: 34px; padding: 0 16px; border-radius: 17px; border: none; font-family: 'DM Sans', sans-serif; font-size: 13px; font-weight: 500; cursor: pointer; transition: all .15s; }
-.banner-btn-yes { background: var(--accent); color: white; }
-.banner-btn-yes:hover { background: #b0531a; }
-.banner-btn-no   { background: transparent; color: var(--ink3); }
-.banner-btn-no:hover { color: var(--ink); }
-.banner-btn-test { background: var(--green-light); color: var(--green); }
-.banner-btn-test:hover { background: #d0edda; }
-
+/* ── TABS ── */
 .tabs { max-width: 680px; margin: 0 auto; display: flex; gap: 6px; padding: 12px 16px; overflow-x: auto; scrollbar-width: none; }
 .tabs::-webkit-scrollbar { display: none; }
 .tab { height: 34px; padding: 0 16px; border-radius: 17px; border: 1px solid var(--border); background: transparent; font-family: 'DM Sans', sans-serif; font-size: 13px; color: var(--ink2); cursor: pointer; white-space: nowrap; transition: all .15s; flex-shrink: 0; }
 .tab:hover { border-color: var(--accent); color: var(--accent); }
 .tab.active { background: var(--ink); border-color: var(--ink); color: var(--cream); }
 
+/* ── NOTES ── */
 .notes-wrap { max-width: 680px; margin: 0 auto; padding: 0 16px; }
 .section-label { font-size: 11px; font-weight: 500; text-transform: uppercase; letter-spacing: 1px; color: var(--ink3); padding: 16px 0 8px; }
 .notes-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
 @media (max-width: 400px) { .notes-grid { grid-template-columns: 1fr; } }
 @media (min-width: 600px) { .notes-grid { grid-template-columns: 1fr 1fr 1fr; } }
-
-.note-card { background: white; border: 1px solid var(--border2); border-radius: var(--r); padding: 16px; cursor: pointer; transition: box-shadow .18s, transform .18s, border-color .18s; position: relative; overflow: hidden; min-height: 120px; display: flex; flex-direction: column; gap: 8px; }
-.note-card:hover { box-shadow: var(--shadow2); transform: translateY(-2px); border-color: rgba(44,40,32,.18); }
+.note-card { background: white; border: 1px solid var(--border2); border-radius: var(--r); padding: 16px; cursor: pointer; transition: box-shadow .18s, transform .18s; position: relative; overflow: hidden; min-height: 120px; display: flex; flex-direction: column; gap: 8px; }
+.note-card:hover { box-shadow: var(--shadow); transform: translateY(-2px); }
 .note-card.pinned::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 3px; background: var(--accent); border-radius: var(--r) var(--r) 0 0; }
-.note-category-dot { width: 8px; height: 8px; border-radius: 50%; display: inline-block; flex-shrink: 0; }
-.note-card-header { display: flex; align-items: flex-start; justify-content: space-between; gap: 8px; }
-.note-title { font-family: 'Lora', serif; font-size: 15px; font-weight: 600; line-height: 1.35; color: var(--ink); flex: 1; word-break: break-word; }
-.note-body { font-size: 13px; color: var(--ink2); line-height: 1.55; overflow: hidden; display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; flex: 1; }
+.note-cat-dot { width: 8px; height: 8px; border-radius: 50%; display: inline-block; flex-shrink: 0; }
+.note-card-hdr { display: flex; align-items: flex-start; justify-content: space-between; gap: 8px; }
+.note-title { font-family: 'Lora', serif; font-size: 15px; font-weight: 600; line-height: 1.35; flex: 1; word-break: break-word; }
+.note-body-preview { font-size: 13px; color: var(--ink2); line-height: 1.55; overflow: hidden; display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; flex: 1; }
 .note-footer { display: flex; align-items: center; gap: 6px; margin-top: auto; flex-wrap: wrap; }
 .note-date { font-size: 11px; color: var(--ink3); flex: 1; }
-.reminder-badge { font-size: 11px; padding: 3px 8px; border-radius: 20px; display: flex; align-items: center; gap: 4px; font-weight: 500; }
-.reminder-badge.upcoming { background: var(--accent-light); color: var(--accent); }
-.reminder-badge.overdue  { background: var(--red-light);    color: var(--red);    }
-.reminder-badge.done     { background: var(--green-light);  color: var(--green);  }
-.reminder-badge svg { flex-shrink: 0; }
+.rbadge { font-size: 11px; padding: 3px 8px; border-radius: 20px; display: flex; align-items: center; gap: 4px; font-weight: 500; }
+.rbadge.upcoming { background: var(--accent-light); color: var(--accent); }
+.rbadge.overdue  { background: var(--red-light); color: var(--red); }
+.rbadge.done     { background: var(--green-light); color: var(--green); }
+.empty-state { text-align: center; padding: 60px 20px; color: var(--ink3); font-size: 15px; }
+.empty-state div { font-size: 40px; margin-bottom: 12px; }
 
-.empty-state { text-align: center; padding: 60px 20px; color: var(--ink3); }
-.empty-state .es-icon { font-size: 40px; margin-bottom: 12px; }
-.empty-state p { font-size: 15px; }
-
-.fab { position: fixed; bottom: 28px; right: max(16px, calc(50vw - 340px + 16px)); width: 56px; height: 56px; border-radius: 28px; background: var(--ink); color: white; border: none; cursor: pointer; box-shadow: 0 4px 20px rgba(44,40,32,.3); display: flex; align-items: center; justify-content: center; font-size: 26px; line-height: 1; transition: transform .15s, box-shadow .15s; z-index: 90; }
-.fab:hover { transform: scale(1.07); box-shadow: 0 6px 28px rgba(44,40,32,.4); }
+/* ── FAB ── */
+.fab { position: fixed; bottom: 28px; right: max(16px, calc(50vw - 340px + 16px)); width: 56px; height: 56px; border-radius: 28px; background: var(--ink); color: white; border: none; cursor: pointer; box-shadow: 0 4px 20px rgba(44,40,32,.3); display: flex; align-items: center; justify-content: center; font-size: 26px; transition: transform .15s; z-index: 90; }
+.fab:hover { transform: scale(1.07); }
 .fab:active { transform: scale(.96); }
 
+/* ── OVERLAY + MODAL ── */
 .overlay { position: fixed; inset: 0; background: rgba(44,40,32,.5); z-index: 200; display: flex; align-items: flex-end; justify-content: center; opacity: 0; pointer-events: none; transition: opacity .2s; }
 .overlay.open { opacity: 1; pointer-events: all; }
 @media (min-width: 560px) { .overlay { align-items: center; padding: 20px; } }
@@ -88,9 +92,7 @@ body { background: var(--cream); color: var(--ink); font-family: 'DM Sans', sans
 @media (min-width: 560px) { .modal { border-radius: var(--r); transform: scale(.96) translateY(12px); } }
 .overlay.open .modal { transform: none; }
 .modal::-webkit-scrollbar { width: 4px; }
-.modal::-webkit-scrollbar-track { background: transparent; }
 .modal::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
-
 .modal-handle { width: 36px; height: 4px; background: var(--border); border-radius: 2px; margin: 12px auto 0; display: block; }
 @media (min-width: 560px) { .modal-handle { display: none; } }
 .modal-header { display: flex; align-items: center; justify-content: space-between; padding: 16px 20px 0; gap: 12px; }
@@ -98,6 +100,7 @@ body { background: var(--cream); color: var(--ink); font-family: 'DM Sans', sans
 .btn-icon { width: 36px; height: 36px; border-radius: 18px; border: none; background: var(--cream2); cursor: pointer; display: flex; align-items: center; justify-content: center; color: var(--ink2); transition: background .15s; flex-shrink: 0; }
 .btn-icon:hover { background: var(--border); }
 
+/* ── FORM ── */
 .form-body { padding: 16px 20px 0; display: flex; flex-direction: column; gap: 14px; }
 .form-group { display: flex; flex-direction: column; gap: 6px; }
 .form-label { font-size: 12px; font-weight: 500; text-transform: uppercase; letter-spacing: .6px; color: var(--ink3); }
@@ -105,18 +108,15 @@ body { background: var(--cream); color: var(--ink); font-family: 'DM Sans', sans
 .form-input { height: 48px; padding: 0 14px; }
 .form-textarea { padding: 12px 14px; resize: vertical; min-height: 100px; line-height: 1.6; }
 .form-input:focus, .form-textarea:focus { border-color: var(--accent); box-shadow: 0 0 0 3px rgba(201,96,26,.1); }
-
 .cat-chips { display: flex; flex-wrap: wrap; gap: 8px; }
 .cat-chip { height: 34px; padding: 0 14px; border-radius: 17px; border: 1px solid var(--border); background: transparent; font-family: 'DM Sans', sans-serif; font-size: 13px; color: var(--ink2); cursor: pointer; display: flex; align-items: center; gap: 7px; transition: all .15s; }
-.cat-chip.selected { border-width: 2px; font-weight: 500; }
-
+.cat-chip.sel { border-width: 2px; font-weight: 500; }
 .toggle-row { display: flex; align-items: center; justify-content: space-between; padding: 12px 14px; background: white; border: 1px solid var(--border2); border-radius: var(--r2); }
-.toggle-label { font-size: 15px; color: var(--ink); }
+.toggle-label { font-size: 15px; }
 .toggle { width: 44px; height: 26px; background: var(--border); border-radius: 13px; position: relative; cursor: pointer; border: none; transition: background .2s; flex-shrink: 0; }
 .toggle.on { background: var(--accent); }
 .toggle::after { content: ''; position: absolute; width: 20px; height: 20px; border-radius: 50%; background: white; top: 3px; left: 3px; transition: transform .2s; box-shadow: 0 1px 4px rgba(0,0,0,.2); }
 .toggle.on::after { transform: translateX(18px); }
-
 .form-actions { display: flex; gap: 10px; padding: 20px 20px 0; flex-wrap: wrap; }
 .btn { height: 48px; border-radius: 24px; border: none; font-family: 'DM Sans', sans-serif; font-size: 15px; font-weight: 500; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px; transition: all .15s; padding: 0 24px; }
 .btn-primary { background: var(--ink); color: white; flex: 1; min-width: 120px; }
@@ -124,46 +124,50 @@ body { background: var(--cream); color: var(--ink); font-family: 'DM Sans', sans
 .btn-primary:active { transform: scale(.97); }
 .btn-danger { background: var(--red-light); color: var(--red); }
 .btn-danger:hover { background: #fad4cf; }
+.btn-outline { height: 48px; border-radius: 24px; border: 1px solid var(--border); background: transparent; font-family: 'DM Sans', sans-serif; font-size: 15px; cursor: pointer; padding: 0 20px; color: var(--ink); transition: all .15s; }
+.btn-outline:hover { border-color: var(--accent); color: var(--accent); }
 
+/* ── DETAIL ── */
 .detail-body { padding: 16px 20px 0; }
 .detail-content { font-size: 15px; color: var(--ink2); line-height: 1.7; white-space: pre-wrap; margin-bottom: 16px; }
 .detail-meta { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; margin-bottom: 16px; }
 .detail-meta .note-date { font-size: 13px; color: var(--ink3); }
 .detail-reminder-box { background: white; border: 1px solid var(--border2); border-radius: var(--r2); padding: 14px; margin-bottom: 16px; display: flex; align-items: center; gap: 12px; }
-.reminder-icon-circle { width: 40px; height: 40px; border-radius: 20px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+.r-icon-circle { width: 40px; height: 40px; border-radius: 20px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
 .detail-actions { display: flex; gap: 10px; padding: 20px 20px 0; flex-wrap: wrap; }
-.btn-outline { height: 48px; border-radius: 24px; border: 1px solid var(--border); background: transparent; font-family: 'DM Sans', sans-serif; font-size: 15px; cursor: pointer; padding: 0 20px; color: var(--ink); transition: all .15s; }
-.btn-outline:hover { border-color: var(--accent); color: var(--accent); }
 
+/* ── CONFIRM ── */
 .confirm-box { background: white; border: 1px solid var(--red-light); border-radius: var(--r2); padding: 20px; margin: 16px 20px 0; }
 .confirm-box p { font-size: 14px; color: var(--ink2); line-height: 1.6; margin-bottom: 14px; }
 .confirm-actions { display: flex; gap: 10px; }
 
-.toast { position: fixed; bottom: 100px; left: 50%; transform: translateX(-50%) translateY(20px); background: var(--ink); color: white; padding: 12px 20px; border-radius: 24px; font-size: 14px; font-weight: 500; opacity: 0; transition: opacity .2s, transform .2s; z-index: 500; white-space: nowrap; pointer-events: none; box-shadow: var(--shadow2); }
+/* ── TOAST ── */
+.toast { position: fixed; bottom: 100px; left: 50%; transform: translateX(-50%) translateY(20px); background: var(--ink); color: white; padding: 12px 20px; border-radius: 24px; font-size: 14px; font-weight: 500; opacity: 0; transition: opacity .2s, transform .2s; z-index: 500; white-space: nowrap; pointer-events: none; box-shadow: var(--shadow); }
 .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
 
-.notif-popup { position: fixed; top: 70px; right: 16px; max-width: 300px; background: white; border: 1px solid var(--border); border-radius: var(--r); padding: 14px 36px 14px 16px; box-shadow: var(--shadow2); z-index: 300; transform: translateX(120%); transition: transform .3s cubic-bezier(.34,1.2,.64,1); cursor: pointer; }
-.notif-popup.show { transform: translateX(0); }
-.notif-header { display: flex; align-items: center; gap: 8px; margin-bottom: 6px; }
-.notif-icon { width: 28px; height: 28px; border-radius: 14px; background: var(--accent-light); display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
-.notif-title { font-size: 13px; font-weight: 500; color: var(--ink); }
-.notif-body { font-size: 12px; color: var(--ink2); line-height: 1.5; }
-.notif-dismiss { position: absolute; top: 10px; right: 10px; width: 24px; height: 24px; border-radius: 12px; border: none; background: var(--cream2); cursor: pointer; font-size: 12px; color: var(--ink3); display: flex; align-items: center; justify-content: center; }
-.notif-dismiss:hover { background: var(--border); }
+/* ── IN-APP NOTIF ── */
+.inapp-notif { position: fixed; top: 70px; right: 16px; max-width: 300px; background: white; border: 1px solid var(--border); border-radius: var(--r); padding: 14px 36px 14px 16px; box-shadow: var(--shadow); z-index: 300; transform: translateX(120%); transition: transform .3s cubic-bezier(.34,1.2,.64,1); cursor: pointer; }
+.inapp-notif.show { transform: translateX(0); }
+.inapp-notif-hdr { display: flex; align-items: center; gap: 8px; margin-bottom: 6px; }
+.inapp-notif-icon { width: 28px; height: 28px; border-radius: 14px; background: var(--accent-light); display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+.inapp-notif-title { font-size: 13px; font-weight: 500; }
+.inapp-notif-body  { font-size: 12px; color: var(--ink2); line-height: 1.5; }
+.inapp-notif-close { position: absolute; top: 10px; right: 10px; width: 24px; height: 24px; border-radius: 12px; border: none; background: var(--cream2); cursor: pointer; font-size: 12px; color: var(--ink3); display: flex; align-items: center; justify-content: center; }
 </style>
 </head>
 <body>
 
-<!-- Notification permission banner -->
-<div id="notif-banner">
-  <div id="notif-banner-inner">
-    <p id="banner-msg">Allow notifications so reminders pop up even when this tab is closed.</p>
-    <button class="banner-btn banner-btn-yes" id="banner-allow">Turn on reminders</button>
-    <button class="banner-btn banner-btn-test" id="banner-test" style="display:none">Send test notification</button>
-    <button class="banner-btn banner-btn-no"  id="banner-skip">Dismiss</button>
+<!-- NOTIFICATION BANNER -->
+<div id="banner">
+  <div id="banner-inner">
+    <p id="banner-msg"></p>
+    <button class="bbtn" id="btn-allow">Turn on reminders</button>
+    <button class="bbtn" id="btn-test">Send test</button>
+    <button class="bbtn" id="btn-dismiss">Dismiss</button>
   </div>
 </div>
 
+<!-- TOP BAR -->
 <div class="topbar">
   <div class="topbar-inner">
     <div class="app-title">My Notes</div>
@@ -177,6 +181,7 @@ body { background: var(--cream); color: var(--ink); font-family: 'DM Sans', sans
   </div>
 </div>
 
+<!-- TABS -->
 <div class="tabs" id="tabs">
   <button class="tab active" data-filter="all">All</button>
   <button class="tab" data-filter="pinned">Pinned</button>
@@ -187,385 +192,336 @@ body { background: var(--cream); color: var(--ink); font-family: 'DM Sans', sans
   <button class="tab" data-filter="Ideas">Ideas</button>
 </div>
 
+<!-- NOTES -->
 <div class="notes-wrap">
   <div id="notes-container"></div>
   <div class="empty-state" id="empty-state" style="display:none">
-    <div class="es-icon">📭</div>
-    <p>No notes found</p>
+    <div>📭</div><p>No notes found</p>
   </div>
 </div>
 
-<button class="fab" id="fab-add" title="Add new note">+</button>
+<button class="fab" id="fab-add">+</button>
 
-<div class="overlay" id="overlay">
-  <div class="modal" id="modal"></div>
-</div>
+<!-- MODAL -->
+<div class="overlay" id="overlay"><div class="modal" id="modal"></div></div>
 
+<!-- TOAST -->
 <div class="toast" id="toast"></div>
 
-<div class="notif-popup" id="notif-popup">
-  <button class="notif-dismiss" id="notif-dismiss">✕</button>
-  <div class="notif-header">
-    <div class="notif-icon">
+<!-- IN-APP NOTIFICATION -->
+<div class="inapp-notif" id="inapp-notif">
+  <button class="inapp-notif-close" id="inapp-close">✕</button>
+  <div class="inapp-notif-hdr">
+    <div class="inapp-notif-icon">
       <svg width="14" height="14" viewBox="0 0 24 24" fill="none">
         <path d="M18 8a6 6 0 10-12 0c0 7-3 9-3 9h18s-3-2-3-9" stroke="#C9601A" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
         <path d="M13.73 21a2 2 0 01-3.46 0" stroke="#C9601A" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
       </svg>
     </div>
-    <div class="notif-title" id="notif-title">Reminder</div>
+    <div class="inapp-notif-title" id="inapp-title">Reminder</div>
   </div>
-  <div class="notif-body" id="notif-body"></div>
+  <div class="inapp-notif-body" id="inapp-body"></div>
 </div>
 
 <script>
-/* ═══════════════════════════════════════════════════════
-   CATEGORIES
-═══════════════════════════════════════════════════════ */
-const CATEGORIES = {
+'use strict';
+
+/* ── CATEGORIES ── */
+const CATS = {
   Work:     { color: '#185FA5', bg: '#E6F1FB' },
   Personal: { color: '#2D6A4F', bg: '#E8F5EE' },
   Shopping: { color: '#C9601A', bg: '#FFF0E6' },
   Ideas:    { color: '#7F77DD', bg: '#EEEDFE' },
 };
 
-/* ═══════════════════════════════════════════════════════
-   SEED DATA
-═══════════════════════════════════════════════════════ */
-function makeSeedNotes() {
-  const future  = (m) => new Date(Date.now() + m * 60000).toISOString();
-  const past    = (m) => new Date(Date.now() - m * 60000).toISOString();
-  const nextDay = (h) => { const t = new Date(); t.setDate(t.getDate() + 1); t.setHours(h, 0, 0, 0); return t.toISOString(); };
+/* ── SEED DATA ── */
+function seedNotes() {
+  const f = m => new Date(Date.now() + m*60000).toISOString();
+  const p = m => new Date(Date.now() - m*60000).toISOString();
+  const nd = h => { const t = new Date(); t.setDate(t.getDate()+1); t.setHours(h,0,0,0); return t.toISOString(); };
   return [
     { id:1, title:'Team meeting prep',
       body:'Prepare slides for Q2 review.\n\nAgenda:\n- Revenue numbers\n- New hires update\n- Client pipeline',
-      category:'Work', pinned:true, reminderEnabled:true, reminderTime:future(30), reminderDone:false,
+      category:'Work', pinned:true, reminderEnabled:true, reminderTime:f(30), reminderDone:false,
       createdAt:new Date(Date.now()-7200000).toISOString() },
     { id:2, title:'Grocery list',
       body:'Milk (2L), eggs (dozen), bread, tomatoes, onions, chicken, yogurt, bananas, coffee powder',
-      category:'Shopping', pinned:false, reminderEnabled:true, reminderTime:nextDay(10), reminderDone:false,
+      category:'Shopping', pinned:false, reminderEnabled:true, reminderTime:nd(10), reminderDone:false,
       createdAt:new Date(Date.now()-18000000).toISOString() },
     { id:3, title:'App idea — local delivery',
-      body:'Hyperlocal delivery for small kirana stores. Partner with 10 stores in one colony first. Charge Rs.15 per delivery. Test with WhatsApp ordering before building an app.',
+      body:'Hyperlocal delivery for small kirana stores. Partner with 10 stores in one colony first. Test with WhatsApp ordering before building an app.',
       category:'Ideas', pinned:false, reminderEnabled:false, reminderTime:'', reminderDone:false,
       createdAt:new Date(Date.now()-86400000).toISOString() },
     { id:4, title:'Call accountant',
-      body:'Ask about GST filing deadline for this quarter. Also check if we need to update the business address.',
-      category:'Work', pinned:false, reminderEnabled:true, reminderTime:past(45), reminderDone:false,
+      body:'Ask about GST filing deadline for this quarter. Check if we need to update the business address.',
+      category:'Work', pinned:false, reminderEnabled:true, reminderTime:p(45), reminderDone:false,
       createdAt:new Date(Date.now()-93600000).toISOString() },
     { id:5, title:"Mum's birthday gift",
-      body:"Saree from Fab India or a spa voucher. Budget around Rs.3,000. Her birthday is next Saturday — order by Thursday to get delivery in time.",
-      category:'Personal', pinned:true, reminderEnabled:true, reminderTime:nextDay(9), reminderDone:false,
+      body:"Saree from Fab India or a spa voucher. Budget around Rs.3,000. Order by Thursday for Saturday delivery.",
+      category:'Personal', pinned:true, reminderEnabled:true, reminderTime:nd(9), reminderDone:false,
       createdAt:new Date(Date.now()-172800000).toISOString() },
     { id:6, title:'Vendor follow-up',
-      body:"Rajesh from SunPack has not sent the revised quote. Follow up by email and call if no reply by evening.",
+      body:"Rajesh from SunPack has not sent the revised quote. Call if no reply by evening.",
       category:'Work', pinned:false, reminderEnabled:false, reminderTime:'', reminderDone:false,
       createdAt:new Date(Date.now()-259200000).toISOString() },
   ];
 }
 
-/* ═══════════════════════════════════════════════════════
-   STATE & STORAGE
-═══════════════════════════════════════════════════════ */
-let notes  = JSON.parse(localStorage.getItem('mynotes_v3') || 'null') || makeSeedNotes();
-let nextId = Math.max(0, ...notes.map(n => n.id)) + 1;
-function save() { localStorage.setItem('mynotes_v3', JSON.stringify(notes)); }
+/* ── STATE ── */
+let notes       = JSON.parse(localStorage.getItem('mynotes_v4') || 'null') || seedNotes();
+let nextId      = Math.max(0, ...notes.map(n => n.id)) + 1;
+let filter      = 'all';
+let query       = '';
+let modalMode   = null;
+let activeId    = null;
+let editForm    = {};
+let timers      = {};   // noteId → setTimeout handle
+let swReg       = null; // ServiceWorkerRegistration
 
-let currentFilter = 'all';
-let searchQuery   = '';
-let modalMode     = null;
-let activeNoteId  = null;
-let editForm      = {};
+function save() { localStorage.setItem('mynotes_v4', JSON.stringify(notes)); }
 
-/* ═══════════════════════════════════════════════════════
-   SERVICE WORKER + NOTIFICATIONS
-═══════════════════════════════════════════════════════ */
-/* ═══════════════════════════════════════════════════════
-   SERVICE WORKER + NOTIFICATIONS
-   Architecture:
-   - Notification() fired directly from the main page (reliable)
-   - setTimeout in main page thread — not SW (SW timers get killed)
-   - SW only used for: offline cache + notification click handling
-═══════════════════════════════════════════════════════ */
-
-let swReg = null;
-let scheduledTimers = {};  // noteId -> setTimeout handle
-
-async function initServiceWorker() {
-  console.log('[Notes] Init. Notification support:', 'Notification' in window);
-  console.log('[Notes] Permission:', 'Notification' in window ? Notification.permission : 'N/A');
-
-  // Register SW for offline + notification click handling (always)
-  await registerSW();
-
-  // Show the right banner state
-  updateBanner();
-
-  // If already granted, schedule everything now
-  if ('Notification' in window && Notification.permission === 'granted') {
-    scheduleAllReminders();
-    fireOverdueReminders();
-  }
-}
-
-function updateBanner() {
-  if (!('Notification' in window)) return;  // browser doesn't support it at all
-  const banner  = document.getElementById('notif-banner');
-  const msg     = document.getElementById('banner-msg');
-  const allow   = document.getElementById('banner-allow');
-  const test    = document.getElementById('banner-test');
-  const dismiss = document.getElementById('banner-skip');
-  const perm    = Notification.permission;
-
-  if (perm === 'default') {
-    msg.textContent = 'Allow notifications so reminders pop up even when this tab is closed.';
-    allow.style.display = '';
-    test.style.display  = 'none';
-    banner.style.display = 'block';
-  } else if (perm === 'granted') {
-    msg.textContent = 'Reminders are on. Send a test to confirm they work on your computer.';
-    allow.style.display = 'none';
-    test.style.display  = '';
-    banner.style.display = 'block';
-  } else if (perm === 'denied') {
-    msg.textContent = 'Notifications are blocked. To fix: click the lock icon in your browser address bar → Notifications → Allow.';
-    allow.style.display = 'none';
-    test.style.display  = 'none';
-    banner.style.display = 'block';
-  }
-}
-
-async function registerSW() {
-  if (!('serviceWorker' in navigator)) {
-    console.warn('[Notes] Service Worker not supported');
-    return;
-  }
-  try {
-    swReg = await navigator.serviceWorker.register('./sw.js', { scope: './' });
-    console.log('[Notes] SW registered, scope:', swReg.scope);
-    navigator.serviceWorker.addEventListener('message', e => {
-      if (!e.data) return;
-      if (e.data.type === 'OPEN_NOTE') openView(Number(e.data.noteId));
-      if (e.data.type === 'MARK_DONE') markReminderDone(Number(e.data.noteId));
-    });
-    handleURLParams();
-  } catch (err) {
-    console.error('[Notes] SW registration failed:', err);
-  }
-}
-
-function handleURLParams() {
-  const params = new URLSearchParams(location.search);
-  const openId = params.get('open');
-  const doneId = params.get('done');
-  if (openId) { openView(Number(openId)); history.replaceState({}, '', location.pathname); }
-  if (doneId) { markReminderDone(Number(doneId)); history.replaceState({}, '', location.pathname); }
-}
-
-async function requestNotificationPermission() {
-  console.log('[Notes] Requesting notification permission…');
-  try {
-    const result = await Notification.requestPermission();
-    console.log('[Notes] Permission result:', result);
-    updateBanner();
-    if (result === 'granted') {
-      scheduleAllReminders();
-      fireOverdueReminders();
-      toast('Reminders are on! You will get a desktop pop-up at reminder time.');
-      // Fire a test immediately so they see it working
-      setTimeout(() => sendTestNotification(), 1500);
-    } else if (result === 'denied') {
-      toast('Notifications blocked. Click the lock icon in the address bar to change this.');
-    } else {
-      toast('Notifications not enabled. You can try again from the banner.');
-    }
-  } catch (err) {
-    console.error('[Notes] Permission request failed:', err);
-    toast('Could not request notification permission. Try Chrome or Edge.');
-  }
-}
-
-function sendTestNotification() {
-  if (Notification.permission !== 'granted') {
-    toast('Notifications are not allowed yet. Click "Turn on reminders" first.');
-    return;
-  }
-  console.log('[Notes] Sending test notification');
-  try {
-    const notif = new Notification('My Notes — Test ✓', {
-      body: 'Reminders are working! You will see a pop-up like this when a reminder is due.',
-      icon: './icon.png',
-      tag: 'test-notif',
-      requireInteraction: false,
-    });
-    notif.onclick = () => { window.focus(); notif.close(); };
-    toast('Test notification sent — check your desktop!');
-  } catch (err) {
-    console.error('[Notes] Test notification failed:', err);
-    toast('Notification failed: ' + err.message + '. Make sure you are using Chrome or Edge.');
-  }
-}
-
-/* Schedule a precise setTimeout for each future reminder in the main thread */
-function scheduleAllReminders() {
-  console.log('[Notes] Scheduling reminders…');
-  let count = 0;
-  for (const n of notes) {
-    if (scheduleOneReminder(n)) count++;
-  }
-  console.log('[Notes] Scheduled', count, 'reminder(s)');
-}
-
-function scheduleOneReminder(note) {
-  // Clear any existing timer first
-  if (scheduledTimers[note.id]) {
-    clearTimeout(scheduledTimers[note.id]);
-    delete scheduledTimers[note.id];
-  }
-  if (!note.reminderEnabled || note.reminderDone || !note.reminderTime) return false;
-  if (Notification.permission !== 'granted') return false;
-
-  const delay = new Date(note.reminderTime).getTime() - Date.now();
-  if (delay < 0) return false;  // past — handled by fireOverdueReminders
-
-  console.log('[Notes] Reminder "' + note.title + '" scheduled in', Math.round(delay/1000), 'seconds');
-  scheduledTimers[note.id] = setTimeout(() => {
-    delete scheduledTimers[note.id];
-    const fresh = notes.find(x => x.id === note.id);
-    if (!fresh || fresh.reminderDone) return;
-    console.log('[Notes] Firing reminder:', fresh.title);
-    fireDesktopNotification(fresh, false);
-  }, delay);
-  return true;
-}
-
-/* Fire any reminder that was missed while the browser tab was closed */
-function fireOverdueReminders() {
-  const now = Date.now();
-  for (const n of notes) {
-    if (!n.reminderEnabled || n.reminderDone || !n.reminderTime) continue;
-    const rt = new Date(n.reminderTime).getTime();
-    if (rt < now && rt > now - 8 * 3600000) {  // missed in last 8 hours
-      console.log('[Notes] Firing overdue reminder:', n.title);
-      fireDesktopNotification(n, true);
-      break;  // one at a time
-    }
-  }
-}
-
-function fireDesktopNotification(note, overdue) {
-  if (Notification.permission !== 'granted') {
-    console.warn('[Notes] Cannot fire — permission not granted');
-    return;
-  }
-  const title = overdue ? '⏰ Missed: ' + note.title : '🔔 ' + note.title;
-  const body  = note.body ? note.body.slice(0, 120) : 'Tap to open this note.';
-  try {
-    const notif = new Notification(title, {
-      body,
-      icon: './icon.png',
-      tag: 'reminder-' + note.id,
-      requireInteraction: true,  // stays until dismissed
-    });
-    notif.onclick = () => { window.focus(); openView(note.id); notif.close(); };
-    notif.onerror = (e) => console.error('[Notes] Notification error:', e);
-    console.log('[Notes] Desktop notification shown:', title);
-  } catch (err) {
-    console.error('[Notes] Notification() threw:', err);
-  }
-  // Also show the in-app popup as backup
-  showInAppNotif(note);
-}
-
-function markReminderDone(id) {
-  const n = notes.find(x => x.id === id);
-  if (!n) return;
-  n.reminderDone = true;
-  if (scheduledTimers[id]) { clearTimeout(scheduledTimers[id]); delete scheduledTimers[id]; }
-  save(); renderNotes();
-  if (activeNoteId === id) openView(id);
-  toast('Reminder marked done!');
-}
-
-function syncReminder(note) {
-  scheduleOneReminder(note);
-}
-
-/* ═══════════════════════════════════════════════════════
-   UTILS
-═══════════════════════════════════════════════════════ */
+/* ── UTILS ── */
 function esc(s) {
-  return String(s || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+  return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
 }
-function reminderStatus(n) {
+function rStatus(n) {
   if (!n.reminderEnabled || !n.reminderTime) return null;
   if (n.reminderDone) return 'done';
   return new Date(n.reminderTime) < new Date() ? 'overdue' : 'upcoming';
 }
 function fmtAgo(iso) {
-  const diff = Date.now() - new Date(iso).getTime();
-  if (diff < 60000)    return 'Just now';
-  if (diff < 3600000)  return Math.floor(diff/60000) + ' min ago';
-  if (diff < 86400000) return Math.floor(diff/3600000) + 'h ago';
-  const d = new Date(iso), opts = {day:'numeric',month:'short'};
-  if (d.getFullYear() !== new Date().getFullYear()) opts.year = 'numeric';
-  return d.toLocaleDateString('en-IN', opts);
+  const d = Date.now() - new Date(iso).getTime();
+  if (d < 60000)    return 'Just now';
+  if (d < 3600000)  return Math.floor(d/60000)+'m ago';
+  if (d < 86400000) return Math.floor(d/3600000)+'h ago';
+  const dt = new Date(iso), o = {day:'numeric',month:'short'};
+  if (dt.getFullYear() !== new Date().getFullYear()) o.year='numeric';
+  return dt.toLocaleDateString('en-IN',o);
 }
-function fmtDateTime(iso) {
+function fmtDT(iso) {
   if (!iso) return '';
   const d = new Date(iso);
   const today = new Date(); today.setHours(0,0,0,0);
   const tmrw  = new Date(today); tmrw.setDate(today.getDate()+1);
   const dd = new Date(d); dd.setHours(0,0,0,0);
-  const time = d.toLocaleTimeString('en-IN',{hour:'2-digit',minute:'2-digit',hour12:true});
-  if (dd.getTime() === today.getTime()) return 'Today at ' + time;
-  if (dd.getTime() === tmrw.getTime())  return 'Tomorrow at ' + time;
-  return d.toLocaleDateString('en-IN',{day:'numeric',month:'short'}) + ' at ' + time;
+  const t = d.toLocaleTimeString('en-IN',{hour:'2-digit',minute:'2-digit',hour12:true});
+  if (dd.getTime()===today.getTime()) return 'Today at '+t;
+  if (dd.getTime()===tmrw.getTime())  return 'Tomorrow at '+t;
+  return d.toLocaleDateString('en-IN',{day:'numeric',month:'short'})+' at '+t;
 }
 function toInputVal(iso) {
   if (!iso) return '';
-  const d = new Date(iso), p = n => String(n).padStart(2,'0');
+  const d=new Date(iso), p=n=>String(n).padStart(2,'0');
   return `${d.getFullYear()}-${p(d.getMonth()+1)}-${p(d.getDate())}T${p(d.getHours())}:${p(d.getMinutes())}`;
 }
 
-/* ═══════════════════════════════════════════════════════
-   TOAST
-═══════════════════════════════════════════════════════ */
-let toastTmr;
+/* ── TOAST ── */
+let toastT;
 function toast(msg) {
   const el = document.getElementById('toast');
   el.textContent = msg; el.classList.add('show');
-  clearTimeout(toastTmr);
-  toastTmr = setTimeout(() => el.classList.remove('show'), 2800);
+  clearTimeout(toastT);
+  toastT = setTimeout(() => el.classList.remove('show'), 3000);
 }
 
-/* ═══════════════════════════════════════════════════════
-   MODAL
-═══════════════════════════════════════════════════════ */
+/* ── MODAL ── */
 function showModal(html) {
-  const modal = document.getElementById('modal');
-  modal.innerHTML = html;
+  document.getElementById('modal').innerHTML = html;
   document.getElementById('overlay').classList.add('open');
-  modal.scrollTop = 0;
+  document.getElementById('modal').scrollTop = 0;
   document.body.style.overflow = 'hidden';
 }
 function closeModal() {
   document.getElementById('overlay').classList.remove('open');
   document.body.style.overflow = '';
-  modalMode = null; activeNoteId = null;
+  modalMode = null; activeId = null;
 }
 
-/* ═══════════════════════════════════════════════════════
-   RENDER NOTES
-═══════════════════════════════════════════════════════ */
+/* ════════════════════════════════════════════════════════
+   NOTIFICATIONS
+   Uses swReg.showNotification() — works reliably from
+   a setTimeout in the main thread, fires via the SW,
+   and shows on desktop even when the tab is in background.
+════════════════════════════════════════════════════════ */
+
+async function initNotifications() {
+  if ('serviceWorker' in navigator) {
+    try {
+      // register() starts install; .ready gives us the ACTIVE registration
+      await navigator.serviceWorker.register('./sw.js', { scope: './' });
+      swReg = await navigator.serviceWorker.ready; // swReg.active is guaranteed non-null here
+      console.log('[Notes] SW active, scope:', swReg.scope);
+
+      navigator.serviceWorker.addEventListener('message', e => {
+        if (!e.data) return;
+        if (e.data.type === 'OPEN_NOTE') openView(Number(e.data.noteId));
+      });
+
+      const openId = new URLSearchParams(location.search).get('open');
+      if (openId) { openView(Number(openId)); history.replaceState({}, '', location.pathname); }
+
+    } catch(err) {
+      console.error('[Notes] SW failed:', err);
+    }
+  }
+
+  updateBanner();
+
+  if ('Notification' in window && Notification.permission === 'granted') {
+    scheduleAll();
+    fireOverdue();
+  }
+}
+
+function updateBanner() {
+  if (!('Notification' in window)) return;
+  const banner = document.getElementById('banner');
+  const msg    = document.getElementById('banner-msg');
+  const allow  = document.getElementById('btn-allow');
+  const test   = document.getElementById('btn-test');
+  const perm   = Notification.permission;
+
+  banner.className = perm; // sets .default / .granted / .denied
+  banner.style.display = 'block';
+  allow.style.display = perm === 'default'  ? '' : 'none';
+  test.style.display  = perm === 'granted'  ? '' : 'none';
+
+  if (perm === 'default') msg.textContent = 'Turn on reminders to get desktop pop-ups even when this tab is in the background.';
+  if (perm === 'granted') msg.textContent = 'Reminders are on. Click "Send test" to confirm it works on your device.';
+  if (perm === 'denied')  msg.textContent = 'Notifications are blocked. To fix: click the 🔒 lock in your browser address bar → Notifications → Allow → reload.';
+}
+
+async function askPermission() {
+  console.log('[Notes] Asking permission. Current:', Notification.permission);
+  const result = await Notification.requestPermission();
+  console.log('[Notes] Permission result:', result);
+  updateBanner();
+  if (result === 'granted') {
+    // Ensure SW is active before we try showNotification
+    if ('serviceWorker' in navigator) {
+      swReg = await navigator.serviceWorker.ready;
+    }
+    scheduleAll();
+    fireOverdue();
+    await fireNotification({ id:0, title:'My Notes — Reminders are on!', body:'You will see pop-ups like this when a reminder is due.' }, false);
+    toast('Reminders are on!');
+  } else {
+    toast(result === 'denied'
+      ? 'Blocked. Click the lock icon in your address bar → Notifications → Allow.'
+      : 'Notification permission not granted.');
+  }
+}
+
+async function sendTest() {
+  console.log('[Notes] Sending test. Permission:', Notification.permission);
+  if (Notification.permission !== 'granted') {
+    toast('Please click "Turn on reminders" first.');
+    return;
+  }
+  // Re-confirm SW is active
+  if ('serviceWorker' in navigator) swReg = await navigator.serviceWorker.ready;
+  await fireNotification({ id:0, title:'My Notes — Test ✓', body:'Notifications are working! Reminders will pop up like this.' }, false);
+  toast('Test sent — you should see a notification on your desktop now.');
+}
+
+/* Core function — uses swReg.showNotification() when available,
+   falls back to new Notification() for browsers without SW support */
+async function fireNotification(note, requireInteraction) {
+  if (Notification.permission !== 'granted') return;
+  const title = note.title;
+  const opts  = {
+    body:    note.body ? note.body.slice(0, 120) : 'Tap to open this note.',
+    icon:    './icon.png',
+    badge:   './icon.png',
+    tag:     'note-' + note.id,
+    data:    { noteId: note.id },
+    requireInteraction: requireInteraction !== false, // stay until dismissed
+  };
+
+  try {
+    // Preferred: use SW registration — works even in background tabs
+    if (swReg && swReg.active) {
+      await swReg.showNotification(title, opts);
+      console.log('[Notes] swReg.showNotification fired:', title);
+    } else {
+      // Fallback: direct Notification constructor
+      const n = new Notification(title, opts);
+      n.onclick = () => { window.focus(); if (note.id) openView(note.id); n.close(); };
+      console.log('[Notes] new Notification() fired:', title);
+    }
+  } catch(err) {
+    console.error('[Notes] Notification failed:', err);
+    toast('Notification error: ' + err.message);
+  }
+}
+
+/* Schedule a setTimeout for every future reminder */
+function scheduleAll() {
+  let count = 0;
+  for (const n of notes) if (scheduleOne(n)) count++;
+  console.log('[Notes] Scheduled', count, 'reminder(s)');
+}
+
+function scheduleOne(note) {
+  if (timers[note.id]) { clearTimeout(timers[note.id]); delete timers[note.id]; }
+  if (!note.reminderEnabled || note.reminderDone || !note.reminderTime) return false;
+  if (Notification.permission !== 'granted') return false;
+  const delay = new Date(note.reminderTime).getTime() - Date.now();
+  if (delay < 0) return false;
+  console.log('[Notes] Scheduled "'+note.title+'" in', Math.round(delay/1000)+'s');
+  timers[note.id] = setTimeout(async () => {
+    delete timers[note.id];
+    const fresh = notes.find(x => x.id === note.id);
+    if (!fresh || fresh.reminderDone) return;
+    await fireNotification(fresh, true);
+    showInApp(fresh);
+  }, delay);
+  return true;
+}
+
+/* Fire any reminder missed while tab was closed (last 8 hours) */
+function fireOverdue() {
+  const now = Date.now();
+  for (const n of notes) {
+    if (!n.reminderEnabled || n.reminderDone || !n.reminderTime) continue;
+    const rt = new Date(n.reminderTime).getTime();
+    if (rt < now && rt > now - 8*3600000) {
+      console.log('[Notes] Overdue reminder:', n.title);
+      fireNotification(n, true);
+      showInApp(n);
+      break;
+    }
+  }
+}
+
+function markDone(id) {
+  const n = notes.find(x => x.id === id);
+  if (!n) return;
+  n.reminderDone = true;
+  if (timers[id]) { clearTimeout(timers[id]); delete timers[id]; }
+  save(); renderNotes();
+  if (activeId === id) openView(id);
+  toast('Reminder marked done!');
+}
+
+/* In-app popup (shows inside the page as extra confirmation) */
+function showInApp(n) {
+  document.getElementById('inapp-title').textContent = n.title;
+  document.getElementById('inapp-body').textContent = n.body ? n.body.slice(0,80)+(n.body.length>80?'…':'') : 'Tap to view.';
+  const el = document.getElementById('inapp-notif');
+  el._nid = n.id;
+  el.classList.add('show');
+  setTimeout(() => el.classList.remove('show'), 8000);
+}
+
+/* ── RENDER NOTES ── */
 function getList() {
   let list = [...notes];
-  const q = searchQuery.trim().toLowerCase();
-  if (q) list = list.filter(n =>
-    n.title.toLowerCase().includes(q) || n.body.toLowerCase().includes(q) || n.category.toLowerCase().includes(q)
-  );
-  if      (currentFilter === 'pinned')   list = list.filter(n => n.pinned);
-  else if (currentFilter === 'reminder') list = list.filter(n => n.reminderEnabled);
-  else if (currentFilter !== 'all')      list = list.filter(n => n.category === currentFilter);
+  const q = query.trim().toLowerCase();
+  if (q) list = list.filter(n => (n.title+n.body+n.category).toLowerCase().includes(q));
+  if      (filter === 'pinned')   list = list.filter(n => n.pinned);
+  else if (filter === 'reminder') list = list.filter(n => n.reminderEnabled);
+  else if (filter !== 'all')      list = list.filter(n => n.category === filter);
   list.sort((a,b) => {
     if (a.pinned && !b.pinned) return -1;
     if (!a.pinned && b.pinned) return 1;
@@ -580,16 +536,15 @@ function renderNotes() {
   const list  = getList();
   if (!list.length) { con.innerHTML = ''; empty.style.display = ''; return; }
   empty.style.display = 'none';
-
-  const sections = currentFilter === 'all' && !searchQuery;
-  const pinned = list.filter(n => n.pinned);
-  const rest   = list.filter(n => !n.pinned);
+  const sects = filter === 'all' && !query;
+  const pin   = list.filter(n => n.pinned);
+  const rest  = list.filter(n => !n.pinned);
   let html = '';
-  if (sections && pinned.length) {
-    html += `<div class="section-label">Pinned</div><div class="notes-grid">` + pinned.map(cardHTML).join('') + `</div>`;
-    if (rest.length) html += `<div class="section-label">All notes</div><div class="notes-grid">` + rest.map(cardHTML).join('') + `</div>`;
+  if (sects && pin.length) {
+    html += '<div class="section-label">Pinned</div><div class="notes-grid">'+pin.map(cardHTML).join('')+'</div>';
+    if (rest.length) html += '<div class="section-label">All notes</div><div class="notes-grid">'+rest.map(cardHTML).join('')+'</div>';
   } else {
-    html = `<div class="notes-grid" style="margin-top:4px">` + list.map(cardHTML).join('') + `</div>`;
+    html = '<div class="notes-grid" style="margin-top:4px">'+list.map(cardHTML).join('')+'</div>';
   }
   con.innerHTML = html;
   con.querySelectorAll('.note-card').forEach(el =>
@@ -598,21 +553,21 @@ function renderNotes() {
 }
 
 function cardHTML(n) {
-  const cat = CATEGORIES[n.category] || {color:'#888',bg:'#eee'};
-  const rs  = reminderStatus(n);
+  const cat = CATS[n.category]||{color:'#888',bg:'#eee'};
+  const rs  = rStatus(n);
   let badge = '';
-  if (rs === 'upcoming') badge = `<span class="reminder-badge upcoming"><svg width="11" height="11" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="2"/><path d="M12 6v6l4 2" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>${fmtDateTime(n.reminderTime)}</span>`;
-  if (rs === 'overdue')  badge = `<span class="reminder-badge overdue"><svg width="11" height="11" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="2"/><path d="M12 8v4m0 4h.01" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>Overdue</span>`;
-  if (rs === 'done')     badge = `<span class="reminder-badge done"><svg width="11" height="11" viewBox="0 0 24 24" fill="none"><polyline points="20 6 9 17 4 12" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/></svg>Done</span>`;
+  if (rs==='upcoming') badge=`<span class="rbadge upcoming"><svg width="11" height="11" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="2"/><path d="M12 6v6l4 2" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>${fmtDT(n.reminderTime)}</span>`;
+  if (rs==='overdue')  badge=`<span class="rbadge overdue"><svg width="11" height="11" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="2"/><path d="M12 8v4m0 4h.01" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>Overdue</span>`;
+  if (rs==='done')     badge=`<span class="rbadge done"><svg width="11" height="11" viewBox="0 0 24 24" fill="none"><polyline points="20 6 9 17 4 12" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/></svg>Done</span>`;
   return `<div class="note-card${n.pinned?' pinned':''}" data-id="${n.id}">
-    <div class="note-card-header">
+    <div class="note-card-hdr">
       <div class="note-title">${esc(n.title)}</div>
-      ${n.pinned ? `<svg width="12" height="12" viewBox="0 0 24 24" fill="#C9601A" style="flex-shrink:0;margin-top:2px"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0118 0z"/></svg>` : ''}
+      ${n.pinned?`<svg width="12" height="12" viewBox="0 0 24 24" fill="#C9601A" style="flex-shrink:0;margin-top:2px"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0118 0z"/></svg>`:''}
     </div>
-    ${n.body ? `<div class="note-body">${esc(n.body)}</div>` : ''}
+    ${n.body?`<div class="note-body-preview">${esc(n.body)}</div>`:''}
     <div class="note-footer">
       <span style="display:flex;align-items:center;gap:5px">
-        <span class="note-category-dot" style="background:${cat.color}"></span>
+        <span class="note-cat-dot" style="background:${cat.color}"></span>
         <span style="font-size:11px;color:${cat.color}">${n.category}</span>
       </span>
       <span class="note-date">${fmtAgo(n.createdAt)}</span>
@@ -621,28 +576,23 @@ function cardHTML(n) {
   </div>`;
 }
 
-/* ═══════════════════════════════════════════════════════
-   VIEW MODAL
-═══════════════════════════════════════════════════════ */
+/* ── VIEW MODAL ── */
 function openView(id) {
   const n = notes.find(x => x.id === id);
   if (!n) return;
-  activeNoteId = id; modalMode = 'view';
-  const cat = CATEGORIES[n.category] || {color:'#888',bg:'#eee'};
-  const rs  = reminderStatus(n);
-
+  activeId = id; modalMode = 'view';
+  const cat = CATS[n.category]||{color:'#888',bg:'#eee'};
+  const rs  = rStatus(n);
   let rBox = '';
   if (n.reminderEnabled && n.reminderTime) {
-    let rc = '#C9601A', rb = '#FFF0E6';
-    if (rs === 'overdue' && !n.reminderDone) { rc = '#B5361E'; rb = '#FDECEA'; }
-    if (rs === 'done') { rc = '#2D6A4F'; rb = '#E8F5EE'; }
-    const lbl = rs === 'done' ? 'Done — was ' + fmtDateTime(n.reminderTime) : fmtDateTime(n.reminderTime);
-    const doneBtn = rs !== 'done'
-      ? `<button class="btn-icon" id="mark-done-btn" style="background:${rb};color:${rc}" title="Mark as done">
-           <svg width="16" height="16" viewBox="0 0 24 24" fill="none"><polyline points="20 6 9 17 4 12" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
-         </button>` : '';
+    let rc='#C9601A', rb='#FFF0E6';
+    if (rs==='overdue'&&!n.reminderDone){rc='#B5361E';rb='#FDECEA';}
+    if (rs==='done'){rc='#2D6A4F';rb='#E8F5EE';}
+    const lbl = rs==='done' ? 'Done — was '+fmtDT(n.reminderTime) : fmtDT(n.reminderTime);
+    const doneBtn = rs!=='done' ? `<button class="btn-icon" id="done-btn" style="background:${rb};color:${rc}">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none"><polyline points="20 6 9 17 4 12" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/></svg></button>` : '';
     rBox = `<div class="detail-reminder-box">
-      <div class="reminder-icon-circle" style="background:${rb}">
+      <div class="r-icon-circle" style="background:${rb}">
         <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
           <path d="M18 8a6 6 0 10-12 0c0 7-3 9-3 9h18s-3-2-3-9" stroke="${rc}" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
           <path d="M13.73 21a2 2 0 01-3.46 0" stroke="${rc}" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
@@ -651,11 +601,8 @@ function openView(id) {
       <div style="flex:1">
         <div style="font-size:11px;font-weight:500;text-transform:uppercase;letter-spacing:.6px;color:${rc};margin-bottom:2px">Reminder</div>
         <div style="font-size:14px;color:var(--ink2)">${lbl}</div>
-      </div>
-      ${doneBtn}
-    </div>`;
+      </div>${doneBtn}</div>`;
   }
-
   showModal(`
     <div class="modal-handle"></div>
     <div class="modal-header">
@@ -665,40 +612,34 @@ function openView(id) {
     <div class="detail-body">
       <div class="detail-meta">
         <span style="display:flex;align-items:center;gap:6px;background:${cat.bg};color:${cat.color};font-size:12px;font-weight:500;padding:4px 10px;border-radius:12px">
-          <span class="note-category-dot" style="background:${cat.color}"></span>${n.category}
+          <span class="note-cat-dot" style="background:${cat.color}"></span>${n.category}
         </span>
         <span class="note-date">${fmtAgo(n.createdAt)}</span>
-        ${n.pinned ? `<span style="font-size:12px;color:var(--accent);background:var(--accent-light);padding:4px 10px;border-radius:12px;font-weight:500">Pinned</span>` : ''}
+        ${n.pinned?`<span style="font-size:12px;color:var(--accent);background:var(--accent-light);padding:4px 10px;border-radius:12px;font-weight:500">Pinned</span>`:''}
       </div>
       ${rBox}
-      <div class="detail-content">${esc(n.body || '')}</div>
+      <div class="detail-content">${esc(n.body||'')}</div>
     </div>
     <div class="detail-actions" id="view-actions">
       <button class="btn btn-primary" id="edit-btn">Edit note</button>
-      <button class="btn-outline" id="pin-btn">${n.pinned ? 'Unpin' : 'Pin'}</button>
-      <button class="btn btn-danger" id="delete-btn">Delete</button>
+      <button class="btn-outline" id="pin-btn">${n.pinned?'Unpin':'Pin'}</button>
+      <button class="btn btn-danger" id="del-btn">Delete</button>
     </div>`);
 
   document.getElementById('modal-close').onclick = closeModal;
   document.getElementById('edit-btn').onclick    = () => openEdit(id);
-  document.getElementById('pin-btn').onclick     = () => {
-    n.pinned = !n.pinned; save(); renderNotes(); openView(id);
-    toast(n.pinned ? 'Note pinned' : 'Note unpinned');
-  };
-  document.getElementById('delete-btn').onclick  = () => showDeleteConfirm(id, 'view-actions');
-  const db = document.getElementById('mark-done-btn');
-  if (db) db.onclick = () => markReminderDone(id);
+  document.getElementById('pin-btn').onclick     = () => { n.pinned=!n.pinned; save(); renderNotes(); openView(id); toast(n.pinned?'Pinned':'Unpinned'); };
+  document.getElementById('del-btn').onclick     = () => confirmDelete(id, 'view-actions');
+  const db = document.getElementById('done-btn');
+  if (db) db.onclick = () => markDone(id);
 }
 
-/* ═══════════════════════════════════════════════════════
-   DELETE CONFIRM
-═══════════════════════════════════════════════════════ */
-function showDeleteConfirm(id, anchorId) {
-  document.querySelectorAll('.confirm-box').forEach(el => el.remove());
+/* ── DELETE CONFIRM ── */
+function confirmDelete(id, anchorId) {
+  document.querySelectorAll('.confirm-box').forEach(e => e.remove());
   const box = document.createElement('div');
   box.className = 'confirm-box';
-  box.innerHTML = `
-    <p>Are you sure you want to delete this note? This cannot be undone.</p>
+  box.innerHTML = `<p>Are you sure you want to delete this note? This cannot be undone.</p>
     <div class="confirm-actions">
       <button class="btn btn-danger" id="cfm-yes">Yes, delete it</button>
       <button class="btn-outline" id="cfm-no">Cancel</button>
@@ -706,54 +647,39 @@ function showDeleteConfirm(id, anchorId) {
   const anchor = document.getElementById(anchorId);
   if (anchor) anchor.parentNode.insertBefore(box, anchor);
   else document.getElementById('modal').appendChild(box);
-  box.scrollIntoView({behavior:'smooth', block:'nearest'});
-  document.getElementById('cfm-yes').onclick = () => {
-    notes = notes.filter(x => x.id !== id);
-    save(); closeModal(); renderNotes();
-    toast('Note deleted');
-  };
-  document.getElementById('cfm-no').onclick = () => box.remove();
+  box.scrollIntoView({behavior:'smooth',block:'nearest'});
+  document.getElementById('cfm-yes').onclick = () => { notes=notes.filter(x=>x.id!==id); save(); closeModal(); renderNotes(); toast('Note deleted'); };
+  document.getElementById('cfm-no').onclick  = () => box.remove();
 }
 
-/* ═══════════════════════════════════════════════════════
-   ADD / EDIT FORM
-═══════════════════════════════════════════════════════ */
-function syncFromDOM() {
-  const t = document.getElementById('f-title');
-  const b = document.getElementById('f-body');
-  const r = document.getElementById('f-reminder-time');
-  if (t) editForm.title = t.value;
-  if (b) editForm.body  = b.value;
-  if (r) editForm.reminderTime = r.value ? new Date(r.value).toISOString() : '';
+/* ── ADD / EDIT FORM ── */
+function syncDOM() {
+  const t=document.getElementById('f-title'), b=document.getElementById('f-body'), r=document.getElementById('f-rt');
+  if(t) editForm.title=t.value;
+  if(b) editForm.body=b.value;
+  if(r) editForm.reminderTime = r.value ? new Date(r.value).toISOString() : '';
 }
-
 function openAdd() {
-  modalMode = 'add'; activeNoteId = null;
-  editForm = {title:'', body:'', category:'Personal', pinned:false, reminderEnabled:false, reminderTime:'', reminderDone:false};
+  modalMode='add'; activeId=null;
+  editForm={title:'',body:'',category:'Personal',pinned:false,reminderEnabled:false,reminderTime:'',reminderDone:false};
   renderForm();
 }
 function openEdit(id) {
-  const n = notes.find(x => x.id === id);
-  if (!n) return;
-  modalMode = 'edit'; activeNoteId = id;
-  editForm = {...n};
-  renderForm();
+  const n=notes.find(x=>x.id===id); if(!n) return;
+  modalMode='edit'; activeId=id; editForm={...n}; renderForm();
 }
-
 function renderForm() {
-  const isEdit = modalMode === 'edit';
-  const chips = Object.entries(CATEGORIES).map(([name, col]) => {
-    const sel = editForm.category === name;
-    return `<button type="button" class="cat-chip${sel?' selected':''}" data-cat="${name}"
-      style="${sel ? `border-color:${col.color};color:${col.color};background:${col.bg}` : ''}">
-      <span class="note-category-dot" style="background:${col.color}"></span>${name}
-    </button>`;
+  const isEdit = modalMode==='edit';
+  const chips = Object.entries(CATS).map(([name,col]) => {
+    const s = editForm.category===name;
+    return `<button type="button" class="cat-chip${s?' sel':''}" data-cat="${name}"
+      style="${s?`border-color:${col.color};color:${col.color};background:${col.bg}`:''}">
+      <span class="note-cat-dot" style="background:${col.color}"></span>${name}</button>`;
   }).join('');
-
   showModal(`
     <div class="modal-handle"></div>
     <div class="modal-header">
-      <div class="modal-title">${isEdit ? 'Edit note' : 'New note'}</div>
+      <div class="modal-title">${isEdit?'Edit note':'New note'}</div>
       <button class="btn-icon" id="modal-close"><svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M1 1l12 12M13 1L1 13" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg></button>
     </div>
     <div class="form-body">
@@ -763,7 +689,7 @@ function renderForm() {
       </div>
       <div class="form-group">
         <label class="form-label">Details</label>
-        <textarea class="form-textarea" id="f-body" placeholder="Add more details here…" rows="4">${esc(editForm.body)}</textarea>
+        <textarea class="form-textarea" id="f-body" rows="4" placeholder="Add more details here…">${esc(editForm.body)}</textarea>
       </div>
       <div class="form-group">
         <label class="form-label">Category</label>
@@ -771,172 +697,92 @@ function renderForm() {
       </div>
       <div class="toggle-row">
         <span class="toggle-label">Set a reminder</span>
-        <button type="button" class="toggle${editForm.reminderEnabled?' on':''}" id="tog-reminder"></button>
+        <button type="button" class="toggle${editForm.reminderEnabled?' on':''}" id="tog-r"></button>
       </div>
-      <div id="reminder-fields" style="display:${editForm.reminderEnabled?'flex':'none'};flex-direction:column;gap:10px">
+      <div id="r-fields" style="display:${editForm.reminderEnabled?'flex':'none'};flex-direction:column;gap:10px">
         <div class="form-group">
           <label class="form-label">Remind me at</label>
-          <input type="datetime-local" class="form-input" id="f-reminder-time" value="${toInputVal(editForm.reminderTime)}">
+          <input type="datetime-local" class="form-input" id="f-rt" value="${toInputVal(editForm.reminderTime)}">
         </div>
       </div>
       <div class="toggle-row">
         <span class="toggle-label">Pin this note</span>
-        <button type="button" class="toggle${editForm.pinned?' on':''}" id="tog-pin"></button>
+        <button type="button" class="toggle${editForm.pinned?' on':''}" id="tog-p"></button>
       </div>
     </div>
     <div class="form-actions" id="form-actions">
-      <button class="btn btn-primary" id="save-btn">${isEdit ? 'Save changes' : 'Add note'}</button>
-      ${isEdit ? `<button class="btn btn-danger" id="del-in-edit">Delete</button>` : ''}
+      <button class="btn btn-primary" id="save-btn">${isEdit?'Save changes':'Add note'}</button>
+      ${isEdit?`<button class="btn btn-danger" id="del-edit-btn">Delete</button>`:''}
     </div>`);
 
-  document.getElementById('modal-close').onclick = () => {
-    if (modalMode === 'edit') openView(activeNoteId); else closeModal();
-  };
-  document.querySelectorAll('.cat-chip').forEach(chip => {
-    chip.addEventListener('click', () => { syncFromDOM(); editForm.category = chip.dataset.cat; renderForm(); });
+  document.getElementById('modal-close').onclick = () => { if(modalMode==='edit') openView(activeId); else closeModal(); };
+  document.querySelectorAll('.cat-chip').forEach(c => c.addEventListener('click', () => { syncDOM(); editForm.category=c.dataset.cat; renderForm(); }));
+  document.getElementById('tog-r').addEventListener('click', () => {
+    editForm.reminderEnabled=!editForm.reminderEnabled;
+    document.getElementById('tog-r').classList.toggle('on',editForm.reminderEnabled);
+    document.getElementById('r-fields').style.display=editForm.reminderEnabled?'flex':'none';
   });
-  document.getElementById('tog-reminder').addEventListener('click', () => {
-    editForm.reminderEnabled = !editForm.reminderEnabled;
-    document.getElementById('tog-reminder').classList.toggle('on', editForm.reminderEnabled);
-    document.getElementById('reminder-fields').style.display = editForm.reminderEnabled ? 'flex' : 'none';
-  });
-  document.getElementById('tog-pin').addEventListener('click', () => {
-    editForm.pinned = !editForm.pinned;
-    document.getElementById('tog-pin').classList.toggle('on', editForm.pinned);
+  document.getElementById('tog-p').addEventListener('click', () => {
+    editForm.pinned=!editForm.pinned;
+    document.getElementById('tog-p').classList.toggle('on',editForm.pinned);
   });
   document.getElementById('save-btn').addEventListener('click', saveNote);
-  const delBtn = document.getElementById('del-in-edit');
-  if (delBtn) delBtn.addEventListener('click', () => showDeleteConfirm(activeNoteId, 'form-actions'));
-  setTimeout(() => {
-    const ti = document.getElementById('f-title');
-    if (ti) { ti.focus(); ti.setSelectionRange(ti.value.length, ti.value.length); }
-  }, 80);
+  const db=document.getElementById('del-edit-btn');
+  if(db) db.addEventListener('click', () => confirmDelete(activeId,'form-actions'));
+  setTimeout(() => { const t=document.getElementById('f-title'); if(t){t.focus();t.setSelectionRange(t.value.length,t.value.length);} }, 80);
 }
 
-/* ═══════════════════════════════════════════════════════
-   SAVE NOTE
-═══════════════════════════════════════════════════════ */
 function saveNote() {
-  const titleEl = document.getElementById('f-title');
-  const bodyEl  = document.getElementById('f-body');
-  const rtEl    = document.getElementById('f-reminder-time');
-  const title   = titleEl ? titleEl.value.trim() : '';
-  const body    = bodyEl  ? bodyEl.value.trim()  : '';
-  const rt      = rtEl && rtEl.value ? new Date(rtEl.value).toISOString() : '';
+  const tEl=document.getElementById('f-title'), bEl=document.getElementById('f-body'), rEl=document.getElementById('f-rt');
+  const title=tEl?tEl.value.trim():'', body=bEl?bEl.value.trim():'';
+  const rt=rEl&&rEl.value?new Date(rEl.value).toISOString():'';
+  if (!title){ toast('Please add a title first'); if(tEl)tEl.focus(); return; }
+  if (editForm.reminderEnabled&&!rt){ toast('Please pick a reminder date and time'); if(rEl)rEl.focus(); return; }
 
-  if (!title) { toast('Please add a title first'); if (titleEl) titleEl.focus(); return; }
-  if (editForm.reminderEnabled && !rt) { toast('Please pick a reminder date and time'); if (rtEl) rtEl.focus(); return; }
-
-  if (modalMode === 'edit') {
-    const n = notes.find(x => x.id === activeNoteId);
-    if (n) {
-      n.title = title; n.body = body;
-      n.category = editForm.category; n.pinned = editForm.pinned;
-      n.reminderEnabled = editForm.reminderEnabled;
-      n.reminderTime    = editForm.reminderEnabled ? rt : '';
-      n.reminderDone    = editForm.reminderEnabled ? (editForm.reminderDone || false) : false;
-      syncReminder(n);
-    }
-    save(); renderNotes(); openView(activeNoteId);
-    toast('Note saved!');
+  if (modalMode==='edit') {
+    const n=notes.find(x=>x.id===activeId);
+    if(n){ n.title=title; n.body=body; n.category=editForm.category; n.pinned=editForm.pinned;
+      n.reminderEnabled=editForm.reminderEnabled; n.reminderTime=editForm.reminderEnabled?rt:'';
+      n.reminderDone=editForm.reminderEnabled?(editForm.reminderDone||false):false;
+      scheduleOne(n); }
+    save(); renderNotes(); openView(activeId); toast('Note saved!');
   } else {
-    const n = {
-      id: nextId++, title, body,
-      category: editForm.category, pinned: editForm.pinned,
-      reminderEnabled: editForm.reminderEnabled,
-      reminderTime: editForm.reminderEnabled ? rt : '',
-      reminderDone: false,
-      createdAt: new Date().toISOString(),
-    };
-    notes.unshift(n);
-    syncReminder(n);
-    save(); renderNotes(); closeModal();
-    toast('Note added!');
+    const n={id:nextId++,title,body,category:editForm.category,pinned:editForm.pinned,
+      reminderEnabled:editForm.reminderEnabled,reminderTime:editForm.reminderEnabled?rt:'',
+      reminderDone:false,createdAt:new Date().toISOString()};
+    notes.unshift(n); scheduleOne(n); save(); renderNotes(); closeModal(); toast('Note added!');
   }
 }
 
-/* ═══════════════════════════════════════════════════════
-   IN-APP REMINDER CHECK (fallback when tab is open)
-═══════════════════════════════════════════════════════ */
-let notifiedIds = new Set();
-function checkReminders() {
-  const now = Date.now();
-  for (const n of notes) {
-    if (!n.reminderEnabled || n.reminderDone || notifiedIds.has(n.id)) continue;
-    const rt = new Date(n.reminderTime).getTime();
-    if (rt > 0 && rt <= now + 30000 && rt >= now - 60000) {
-      showInAppNotif(n); notifiedIds.add(n.id);
-    }
-  }
-}
-function checkOverdueOnce() {
-  const now = Date.now();
-  for (const n of notes) {
-    if (!n.reminderEnabled || n.reminderDone || notifiedIds.has(n.id)) continue;
-    if (new Date(n.reminderTime).getTime() < now - 60000) {
-      showInAppNotif(n); notifiedIds.add(n.id); break;
-    }
-  }
-}
-function showInAppNotif(n) {
-  document.getElementById('notif-title').textContent = n.title;
-  document.getElementById('notif-body').textContent  = n.body ? n.body.slice(0,80) + (n.body.length>80?'…':'') : 'Tap to view this note.';
-  const popup = document.getElementById('notif-popup');
-  popup._nid = n.id;
-  popup.classList.add('show');
-  setTimeout(() => popup.classList.remove('show'), 8000);
-}
-
-document.getElementById('notif-popup').addEventListener('click', function(e) {
-  if (e.target.closest('#notif-dismiss')) return;
-  this.classList.remove('show');
-  if (this._nid) openView(this._nid);
-});
-document.getElementById('notif-dismiss').addEventListener('click', () =>
-  document.getElementById('notif-popup').classList.remove('show')
-);
-
-setInterval(checkReminders, 15000);
-setTimeout(checkOverdueOnce, 1500);
-
-/* ═══════════════════════════════════════════════════════
-   NOTIFICATION BANNER BUTTONS
-═══════════════════════════════════════════════════════ */
-document.getElementById('banner-allow').addEventListener('click', requestNotificationPermission);
-document.getElementById('banner-test').addEventListener('click', sendTestNotification);
-document.getElementById('banner-skip').addEventListener('click', () => {
-  document.getElementById('notif-banner').style.display = 'none';
-});
-
-/* ═══════════════════════════════════════════════════════
-   GLOBAL EVENTS
-═══════════════════════════════════════════════════════ */
+/* ── GLOBAL EVENTS ── */
 document.getElementById('fab-add').addEventListener('click', openAdd);
-document.getElementById('search').addEventListener('input', e => { searchQuery = e.target.value; renderNotes(); });
+document.getElementById('search').addEventListener('input', e => { query=e.target.value; renderNotes(); });
 document.getElementById('tabs').addEventListener('click', e => {
-  const tab = e.target.closest('.tab');
-  if (!tab) return;
-  currentFilter = tab.dataset.filter;
-  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
-  tab.classList.add('active');
-  renderNotes();
+  const tab=e.target.closest('.tab'); if(!tab) return;
+  filter=tab.dataset.filter;
+  document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
+  tab.classList.add('active'); renderNotes();
 });
 document.getElementById('overlay').addEventListener('click', e => {
-  if (e.target === document.getElementById('overlay')) {
-    if (modalMode === 'edit') openView(activeNoteId); else closeModal();
-  }
+  if(e.target===document.getElementById('overlay')){ if(modalMode==='edit') openView(activeId); else closeModal(); }
 });
 document.addEventListener('keydown', e => {
-  if (e.key === 'Escape' && document.getElementById('overlay').classList.contains('open')) {
-    if (modalMode === 'edit') openView(activeNoteId); else closeModal();
+  if(e.key==='Escape'&&document.getElementById('overlay').classList.contains('open')){
+    if(modalMode==='edit') openView(activeId); else closeModal();
   }
 });
+document.getElementById('btn-allow').addEventListener('click', askPermission);
+document.getElementById('btn-test').addEventListener('click', sendTest);
+document.getElementById('btn-dismiss').addEventListener('click', () => { document.getElementById('banner').style.display='none'; });
+document.getElementById('inapp-notif').addEventListener('click', function(e){
+  if(e.target.closest('#inapp-close')) return;
+  this.classList.remove('show'); if(this._nid) openView(this._nid);
+});
+document.getElementById('inapp-close').addEventListener('click', () => document.getElementById('inapp-notif').classList.remove('show'));
 
-/* ═══════════════════════════════════════════════════════
-   INIT
-═══════════════════════════════════════════════════════ */
+/* ── INIT ── */
 renderNotes();
-initServiceWorker();
+initNotifications();
 </script>
 </body>
 </html>
