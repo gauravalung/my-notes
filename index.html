@@ -60,10 +60,23 @@ body { background: var(--bg); color: var(--ink); font-family: 'DM Sans', sans-se
 .topbar-inner { max-width: 700px; margin: 0 auto; display: flex; align-items: center; gap: 12px; height: 58px; }
 .app-title { font-family: 'Lora', serif; font-size: 21px; font-weight: 600; color: var(--purple2); flex-shrink: 0; letter-spacing: -.3px; }
 .search-wrap { flex: 1; position: relative; }
+.search-wrap.focused { z-index: 110; }
 .search-wrap svg { position: absolute; left: 11px; top: 50%; transform: translateY(-50%); pointer-events: none; }
-#search { width: 100%; height: 38px; border: 1.5px solid var(--border); border-radius: 19px; background: var(--surface); padding: 0 14px 0 36px; font-family: 'DM Sans', sans-serif; font-size: 14px; color: var(--ink); outline: none; transition: border-color .15s, box-shadow .15s; }
+#search { width: 100%; height: 38px; border: 1.5px solid var(--border); border-radius: 19px; background: var(--surface); padding: 0 14px 0 36px; font-family: 'DM Sans', sans-serif; font-size: 14px; color: var(--ink); outline: none; transition: border-color .2s, box-shadow .2s, border-radius .2s; }
 #search::placeholder { color: var(--ink3); }
-#search:focus { border-color: var(--purple); box-shadow: 0 0 0 3px rgba(83,74,183,.12); }
+#search:focus { border-color: var(--purple); box-shadow: 0 0 0 3px rgba(83,74,183,.12); border-radius: 16px 16px 0 0; }
+#search.has-dropdown { border-radius: 16px 16px 0 0; border-color: var(--purple); }
+
+/* Search recent dropdown */
+#search-dropdown { display: none; position: absolute; top: 100%; left: 0; right: 0; background: var(--surface); border: 1.5px solid var(--purple); border-top: none; border-radius: 0 0 16px 16px; box-shadow: 0 8px 24px rgba(83,74,183,.12); z-index: 10; overflow: hidden; }
+#search-dropdown.show { display: block; animation: dropFade .15s ease-out; }
+@keyframes dropFade { from { opacity:0; transform:translateY(-4px); } to { opacity:1; transform:translateY(0); } }
+.search-drop-label { font-size: 10px; font-weight: 500; text-transform: uppercase; letter-spacing: .8px; color: var(--ink3); padding: 10px 14px 6px; }
+.search-drop-item { display: flex; align-items: center; gap: 10px; padding: 9px 14px; cursor: pointer; transition: background .12s; border-top: 0.5px solid var(--border2); }
+.search-drop-item:hover { background: var(--purple-l); }
+.search-drop-title { font-size: 13px; color: var(--ink); font-weight: 500; flex: 1; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.search-drop-time  { font-size: 11px; color: var(--ink3); flex-shrink: 0; }
+.search-drop-dot   { width: 7px; height: 7px; border-radius: 50%; flex-shrink: 0; }
 
 /* ── FILTER BAR ── */
 .filter-bar { max-width: 700px; margin: 0 auto; display: flex; gap: 6px; padding: 10px 16px; overflow-x: auto; scrollbar-width: none; }
@@ -80,12 +93,17 @@ body { background: var(--bg); color: var(--ink); font-family: 'DM Sans', sans-se
 .notes-wrap { max-width: 700px; margin: 0 auto; padding: 4px 16px 0; }
 .section-label { font-size: 11px; font-weight: 500; text-transform: uppercase; letter-spacing: 1px; color: var(--ink3); padding: 14px 0 8px; }
 .notes-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.notes-grid, .pinned-scroll { animation: gridFade .18s ease-out; }
+@keyframes gridFade { from { opacity:.5; } to { opacity:1; } }
 @media (max-width: 400px) { .notes-grid { grid-template-columns: 1fr; } }
 @media (min-width: 620px) { .notes-grid { grid-template-columns: 1fr 1fr 1fr; } }
 
 /* ── NOTE CARD ── */
 .note-card { background: var(--surface); border: 1.5px solid var(--border2); border-radius: var(--r); padding: 14px; cursor: pointer; transition: box-shadow .18s, transform .18s, border-color .18s; position: relative; overflow: hidden; min-height: 118px; display: flex; flex-direction: column; gap: 7px; }
-.note-card:hover { box-shadow: var(--shadow); transform: translateY(-2px); border-color: var(--border); }
+.note-card:hover { box-shadow: 0 4px 24px rgba(83,74,183,.14), 0 0 0 1px rgba(83,74,183,.12); transform: translateY(-2px); border-color: rgba(83,74,183,.2); }
+.note-card:active { transform: scale(.98); transition: transform .1s ease-out; }
+.note-card.card-entering { animation: cardPop .2s ease-out; }
+@keyframes cardPop { from { opacity:.6; transform:scale(.98); } to { opacity:1; transform:scale(1); } }
 .note-card.pinned::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 3px; background: var(--purple); border-radius: var(--r) var(--r) 0 0; }
 
 /* Card colour tints */
@@ -122,7 +140,8 @@ body { background: var(--bg); color: var(--ink); font-family: 'DM Sans', sans-se
 .pinned-scroll-wrap::-webkit-scrollbar { display: none; }
 .pinned-scroll { display: flex; gap: 10px; width: max-content; padding-right: 16px; }
 .pinned-hcard { background: var(--surface); border: 1.5px solid var(--border2); border-radius: var(--r); padding: 14px; cursor: pointer; transition: box-shadow .18s, transform .18s; position: relative; overflow: hidden; width: 200px; min-height: 130px; display: flex; flex-direction: column; gap: 7px; flex-shrink: 0; }
-.pinned-hcard:hover { box-shadow: var(--shadow); transform: translateY(-2px); }
+.pinned-hcard:hover { box-shadow: 0 4px 24px rgba(83,74,183,.14), 0 0 0 1px rgba(83,74,183,.12); transform: translateY(-2px); border-color: rgba(83,74,183,.2); }
+.pinned-hcard:active { transform: scale(.98); transition: transform .1s ease-out; }
 .pinned-hcard::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 3px; background: var(--purple); border-radius: var(--r) var(--r) 0 0; }
 .pinned-hcard.tint-purple { background: #F3F0FF; border-color: rgba(83,74,183,.15); }
 .pinned-hcard.tint-teal   { background: #EDFAF4; border-color: rgba(29,158,117,.15); }
@@ -282,6 +301,7 @@ body { background: var(--bg); color: var(--ink); font-family: 'DM Sans', sans-se
         <path d="M10 10l3 3" stroke="#9D93C0" stroke-width="1.4" stroke-linecap="round"/>
       </svg>
       <input type="text" id="search" placeholder="Search notes, #tags…" autocomplete="off">
+      <div id="search-dropdown"></div>
     </div>
   </div>
 </div>
@@ -668,6 +688,12 @@ function renderNotes() {
     html = `<div class="notes-grid" style="margin-top:4px">${list.map(n=>cardHTML(n,q)).join('')}</div>`;
   }
   con.innerHTML = html;
+
+  // Animate cards in
+  con.querySelectorAll('.note-card').forEach((el, i) => {
+    el.style.animationDelay = `${i * 18}ms`;
+    el.classList.add('card-entering');
+  });
 
   // Click handlers for all cards
   con.querySelectorAll('.note-card, .pinned-hcard').forEach(el =>
@@ -1263,8 +1289,62 @@ function fireOverdue(){
    EVENTS
 ══════════════════════════════════════════ */
 document.getElementById('fab-add').addEventListener('click', openTemplatePicker);
-document.getElementById('search').addEventListener('input', e => {
-  searchQ=e.target.value; renderNotes();
+/* Search input — live filter + dropdown */
+const searchEl = document.getElementById('search');
+const searchDropEl = document.getElementById('search-dropdown');
+const searchWrap = searchEl.closest('.search-wrap');
+
+function recentNotes(limit=5) {
+  return [...notes]
+    .filter(n => n.title)
+    .sort((a,b) => new Date(b.updatedAt||b.createdAt) - new Date(a.updatedAt||a.createdAt))
+    .slice(0, limit);
+}
+
+function renderSearchDropdown() {
+  const recent = recentNotes(5);
+  if (!recent.length) { searchDropEl.classList.remove('show'); return; }
+  searchDropEl.innerHTML =
+    `<div class="search-drop-label">Recently edited</div>` +
+    recent.map(n => {
+      const cat = getCat(n.category);
+      return `<div class="search-drop-item" data-id="${n.id}">
+        <span class="search-drop-dot" style="background:${cat?cat.color:'#9D93C0'}"></span>
+        <span class="search-drop-title">${esc(n.title)}</span>
+        <span class="search-drop-time">${fmtAgo(n.updatedAt||n.createdAt)}</span>
+      </div>`;
+    }).join('');
+  searchDropEl.classList.add('show');
+  searchEl.classList.add('has-dropdown');
+  searchWrap.classList.add('focused');
+
+  searchDropEl.querySelectorAll('.search-drop-item').forEach(item => {
+    item.addEventListener('mousedown', e => {
+      e.preventDefault(); // prevent blur firing before click
+      hideSearchDropdown();
+      openView(parseInt(item.dataset.id));
+    });
+  });
+}
+
+function hideSearchDropdown() {
+  searchDropEl.classList.remove('show');
+  searchEl.classList.remove('has-dropdown');
+  searchWrap.classList.remove('focused');
+}
+
+searchEl.addEventListener('focus', () => {
+  if (!searchEl.value) renderSearchDropdown();
+});
+searchEl.addEventListener('blur', () => {
+  // Small delay so mousedown on item fires first
+  setTimeout(hideSearchDropdown, 150);
+});
+searchEl.addEventListener('input', e => {
+  searchQ = e.target.value;
+  if (searchQ) hideSearchDropdown();
+  else if (document.activeElement === searchEl) renderSearchDropdown();
+  renderNotes();
 });
 document.getElementById('overlay').addEventListener('click', e => {
   if(e.target===document.getElementById('overlay')){
