@@ -117,6 +117,30 @@ body { background: var(--bg); color: var(--ink); font-family: 'DM Sans', sans-se
 .empty-state .es-big { font-size: 38px; margin-bottom: 10px; }
 .empty-state p { font-size: 15px; }
 
+/* ── HORIZONTAL PINNED SCROLL ── */
+.pinned-scroll-wrap { overflow-x: auto; scrollbar-width: none; padding: 2px 0 10px; margin: 0 -16px; padding-left: 16px; }
+.pinned-scroll-wrap::-webkit-scrollbar { display: none; }
+.pinned-scroll { display: flex; gap: 10px; width: max-content; padding-right: 16px; }
+.pinned-hcard { background: var(--surface); border: 1.5px solid var(--border2); border-radius: var(--r); padding: 14px; cursor: pointer; transition: box-shadow .18s, transform .18s; position: relative; overflow: hidden; width: 200px; min-height: 130px; display: flex; flex-direction: column; gap: 7px; flex-shrink: 0; }
+.pinned-hcard:hover { box-shadow: var(--shadow); transform: translateY(-2px); }
+.pinned-hcard::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 3px; background: var(--purple); border-radius: var(--r) var(--r) 0 0; }
+.pinned-hcard.tint-purple { background: #F3F0FF; border-color: rgba(83,74,183,.15); }
+.pinned-hcard.tint-teal   { background: #EDFAF4; border-color: rgba(29,158,117,.15); }
+.pinned-hcard.tint-amber  { background: #FEF6E8; border-color: rgba(186,117,23,.15); }
+.pinned-hcard.tint-pink   { background: #FDF0F5; border-color: rgba(212,83,126,.15); }
+.pinned-hcard.tint-blue   { background: #EEF4FF; border-color: rgba(55,138,221,.15); }
+.pinned-hcard .card-title { font-size: 13px; }
+.pinned-hcard .card-body  { font-size: 11px; -webkit-line-clamp: 2; }
+
+/* Due bubble */
+.due-bubble { display: inline-flex; align-items: center; gap: 4px; background: #FDECEA; color: #B5361E; border: 1px solid rgba(181,54,30,.2); border-radius: 20px; padding: 3px 9px 3px 7px; font-size: 11px; font-weight: 600; letter-spacing: .1px; flex-shrink: 0; }
+.due-bubble-dot { width: 6px; height: 6px; border-radius: 50%; background: #B5361E; flex-shrink: 0; }
+
+/* Scroll progress dots */
+.scroll-dots { display: flex; gap: 4px; justify-content: center; padding: 2px 0 4px; }
+.sdot { width: 5px; height: 5px; border-radius: 50%; background: rgba(83,74,183,.2); transition: all .2s; }
+.sdot.active { background: var(--purple); width: 14px; border-radius: 3px; }
+
 /* ── FAB ── */
 .fab { position: fixed; bottom: 26px; right: max(16px, calc(50vw - 350px + 16px)); width: 54px; height: 54px; border-radius: 27px; background: var(--purple); color: white; border: none; cursor: pointer; box-shadow: 0 4px 20px rgba(83,74,183,.35); display: flex; align-items: center; justify-content: center; font-size: 24px; line-height: 1; transition: transform .15s, box-shadow .15s; z-index: 90; }
 .fab:hover { transform: scale(1.07); box-shadow: 0 6px 28px rgba(83,74,183,.45); }
@@ -560,6 +584,69 @@ function getList() {
   return list;
 }
 
+/* Sort pinned notes: overdue first → upcoming by time → no reminder by createdAt */
+function sortPinned(pinned) {
+  const now = Date.now();
+  return [...pinned].sort((a, b) => {
+    const ra = a.reminderEnabled && !a.reminderDone && a.reminderTime ? new Date(a.reminderTime).getTime() : null;
+    const rb = b.reminderEnabled && !b.reminderDone && b.reminderTime ? new Date(b.reminderTime).getTime() : null;
+    const aOver = ra && ra < now;
+    const bOver = rb && rb < now;
+    // Both overdue: most overdue (smallest time) first
+    if (aOver && bOver) return ra - rb;
+    // One overdue: overdue goes first
+    if (aOver) return -1;
+    if (bOver) return 1;
+    // Both have upcoming reminder: earliest first
+    if (ra && rb) return ra - rb;
+    // One has upcoming reminder: reminder goes first
+    if (ra) return -1;
+    if (rb) return 1;
+    // Neither has reminder: most recently created first
+    return new Date(b.createdAt) - new Date(a.createdAt);
+  });
+}
+
+function pinnedScrollHTML(pinned, q) {
+  const sorted = sortPinned(pinned);
+  const cards = sorted.map(n => pinnedCardHTML(n, q)).join('');
+  const dots  = sorted.map((_, i) =>
+    `<div class="sdot${i===0?' active':''}" data-idx="${i}"></div>`
+  ).join('');
+  return `
+    <div class="section-label">Pinned</div>
+    <div class="pinned-scroll-wrap" id="pinned-scroll-wrap">
+      <div class="pinned-scroll" id="pinned-scroll">${cards}</div>
+    </div>
+    ${sorted.length > 1 ? `<div class="scroll-dots" id="scroll-dots">${dots}</div>` : ''}`;
+}
+
+function pinnedCardHTML(n, q='') {
+  const cat  = getCat(n.category);
+  const tint = TINTS.find(t => t.id===(n.tint||'none'));
+  const rs   = rStatus(n);
+  const tags = (n.tags||[]).slice(0,2);
+  const now  = Date.now();
+  const isOverdue = n.reminderEnabled && !n.reminderDone && n.reminderTime && new Date(n.reminderTime).getTime() < now;
+  // #due bubble: reminder overdue by more than 0ms (any overdue)
+  const dueBubble = isOverdue
+    ? `<span class="due-bubble"><span class="due-bubble-dot"></span>Due</span>`
+    : '';
+  const tagPills = tags.map(t=>`<span class="pill hash-pill">#${esc(t)}</span>`).join('');
+  return `<div class="pinned-hcard ${tint?tint.cls:''}" data-id="${n.id}">
+    <div class="card-hdr">
+      <div class="card-title">${highlight(n.title,q)}</div>
+    </div>
+    ${n.body?`<div class="card-body">${highlight(n.body.slice(0,100),q)}</div>`:''}
+    <div class="card-footer" style="margin-top:auto">
+      ${cat?`<span class="pill cat-pill"><span class="card-dot" style="background:${cat.color}"></span>${esc(cat.name)}</span>`:''}
+      ${tagPills}
+      ${dueBubble}
+      <span class="card-date" style="margin-left:auto">${fmtAgo(n.createdAt)}</span>
+    </div>
+  </div>`;
+}
+
 function renderNotes() {
   const con   = document.getElementById('notes-container');
   const empty = document.getElementById('empty-state');
@@ -575,15 +662,30 @@ function renderNotes() {
 
   let html = '';
   if (showSections && pinned.length) {
-    html += `<div class="section-label">Pinned</div><div class="notes-grid">${pinned.map(n=>cardHTML(n,q)).join('')}</div>`;
+    html += pinnedScrollHTML(pinned, q);
     if (rest.length) html += `<div class="section-label">All notes</div><div class="notes-grid">${rest.map(n=>cardHTML(n,q)).join('')}</div>`;
   } else {
     html = `<div class="notes-grid" style="margin-top:4px">${list.map(n=>cardHTML(n,q)).join('')}</div>`;
   }
   con.innerHTML = html;
-  con.querySelectorAll('.note-card').forEach(el =>
+
+  // Click handlers for all cards
+  con.querySelectorAll('.note-card, .pinned-hcard').forEach(el =>
     el.addEventListener('click', () => openView(parseInt(el.dataset.id)))
   );
+
+  // Scroll dot sync
+  const wrap = document.getElementById('pinned-scroll-wrap');
+  const scroll = document.getElementById('pinned-scroll');
+  if (wrap && scroll) {
+    wrap.addEventListener('scroll', () => {
+      const dots = document.querySelectorAll('#scroll-dots .sdot');
+      if (!dots.length) return;
+      const cardW = scroll.children[0] ? scroll.children[0].offsetWidth + 10 : 210;
+      const idx = Math.round(wrap.scrollLeft / cardW);
+      dots.forEach((d,i) => d.classList.toggle('active', i===idx));
+    }, { passive: true });
+  }
 }
 
 function cardHTML(n, q='') {
