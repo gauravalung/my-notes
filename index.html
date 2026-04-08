@@ -92,11 +92,14 @@ body { background: var(--bg); color: var(--ink); font-family: 'DM Sans', sans-se
 /* ── MAIN WRAP ── */
 .notes-wrap { max-width: 700px; margin: 0 auto; padding: 4px 16px 0; }
 .section-label { font-size: 11px; font-weight: 500; text-transform: uppercase; letter-spacing: 1px; color: var(--ink3); padding: 14px 0 8px; }
-.notes-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
-.notes-grid, .pinned-scroll { animation: gridFade .18s ease-out; }
+/* Shared horizontal scroll row — used for both pinned and all-notes */
+.hrow-wrap { overflow-x: auto; scrollbar-width: none; padding: 2px 0 10px; margin: 0 -16px; padding-left: 16px; }
+.hrow-wrap::-webkit-scrollbar { display: none; }
+.hrow { display: flex; gap: 10px; width: max-content; padding-right: 16px; animation: gridFade .18s ease-out; }
 @keyframes gridFade { from { opacity:.5; } to { opacity:1; } }
-@media (max-width: 400px) { .notes-grid { grid-template-columns: 1fr; } }
-@media (min-width: 620px) { .notes-grid { grid-template-columns: 1fr 1fr 1fr; } }
+/* All-notes cards: slightly wider than pinned */
+.hrow .note-card { width: 220px; min-height: 140px; flex-shrink: 0; }
+@media (min-width: 600px) { .hrow .note-card { width: 240px; } }
 
 /* ── NOTE CARD ── */
 .note-card { background: var(--surface); border: 1.5px solid var(--border2); border-radius: var(--r); padding: 14px; cursor: pointer; transition: box-shadow .18s, transform .18s, border-color .18s; position: relative; overflow: hidden; min-height: 118px; display: flex; flex-direction: column; gap: 7px; }
@@ -135,10 +138,8 @@ body { background: var(--bg); color: var(--ink); font-family: 'DM Sans', sans-se
 .empty-state .es-big { font-size: 38px; margin-bottom: 10px; }
 .empty-state p { font-size: 15px; }
 
-/* ── HORIZONTAL PINNED SCROLL ── */
-.pinned-scroll-wrap { overflow-x: auto; scrollbar-width: none; padding: 2px 0 10px; margin: 0 -16px; padding-left: 16px; }
-.pinned-scroll-wrap::-webkit-scrollbar { display: none; }
-.pinned-scroll { display: flex; gap: 10px; width: max-content; padding-right: 16px; }
+/* ── HORIZONTAL PINNED SCROLL (reuses hrow-wrap) ── */
+.pinned-scroll { display: flex; gap: 10px; width: max-content; padding-right: 16px; animation: gridFade .18s ease-out; }
 .pinned-hcard { background: var(--surface); border: 1.5px solid var(--border2); border-radius: var(--r); padding: 14px; cursor: pointer; transition: box-shadow .18s, transform .18s; position: relative; overflow: hidden; width: 200px; min-height: 130px; display: flex; flex-direction: column; gap: 7px; flex-shrink: 0; }
 .pinned-hcard:hover { box-shadow: 0 4px 24px rgba(83,74,183,.14), 0 0 0 1px rgba(83,74,183,.12); transform: translateY(-2px); border-color: rgba(83,74,183,.2); }
 .pinned-hcard:active { transform: scale(.98); transition: transform .1s ease-out; }
@@ -635,7 +636,7 @@ function pinnedScrollHTML(pinned, q) {
   ).join('');
   return `
     <div class="section-label">Pinned</div>
-    <div class="pinned-scroll-wrap" id="pinned-scroll-wrap">
+    <div class="hrow-wrap" id="pinned-scroll-wrap">
       <div class="pinned-scroll" id="pinned-scroll">${cards}</div>
     </div>
     ${sorted.length > 1 ? `<div class="scroll-dots" id="scroll-dots">${dots}</div>` : ''}`;
@@ -683,9 +684,14 @@ function renderNotes() {
   let html = '';
   if (showSections && pinned.length) {
     html += pinnedScrollHTML(pinned, q);
-    if (rest.length) html += `<div class="section-label">All notes</div><div class="notes-grid">${rest.map(n=>cardHTML(n,q)).join('')}</div>`;
+    if (rest.length) html += `<div class="section-label">All notes</div>
+      <div class="hrow-wrap" id="all-notes-wrap">
+        <div class="hrow">${rest.map(n=>cardHTML(n,q)).join('')}</div>
+      </div>`;
   } else {
-    html = `<div class="notes-grid" style="margin-top:4px">${list.map(n=>cardHTML(n,q)).join('')}</div>`;
+    html = `<div class="hrow-wrap" id="all-notes-wrap" style="margin-top:4px">
+      <div class="hrow">${list.map(n=>cardHTML(n,q)).join('')}</div>
+    </div>`;
   }
   con.innerHTML = html;
 
@@ -700,7 +706,7 @@ function renderNotes() {
     el.addEventListener('click', () => openView(parseInt(el.dataset.id)))
   );
 
-  // Scroll dot sync
+  // Scroll dot sync for pinned row
   const wrap = document.getElementById('pinned-scroll-wrap');
   const scroll = document.getElementById('pinned-scroll');
   if (wrap && scroll) {
