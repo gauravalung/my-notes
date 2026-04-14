@@ -1,0 +1,1387 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>My Notes</title>
+<meta name="theme-color" content="#F5F0FF">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="My Notes">
+<link rel="manifest" href="manifest.json">
+<link href="https://fonts.googleapis.com/css2?family=Lora:wght@400;600&family=DM+Sans:wght@400;500&display=swap" rel="stylesheet">
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+  --bg:       #F5F0FF;
+  --bg2:      #EDE6FF;
+  --surface:  #FFFFFF;
+  --ink:      #1A1535;
+  --ink2:     #5B5380;
+  --ink3:     #9D93C0;
+  --purple:   #534AB7;
+  --purple2:  #3C3489;
+  --purple-l: #EEEDFE;
+  --purple-m: #AFA9EC;
+  --green:    #2D6A4F;
+  --green-l:  #E8F5EE;
+  --red:      #B5361E;
+  --red-l:    #FDECEA;
+  --border:   rgba(83,74,183,0.12);
+  --border2:  rgba(83,74,183,0.07);
+  --shadow:   0 4px 24px rgba(83,74,183,0.10);
+  --shadow2:  0 2px 8px  rgba(83,74,183,0.08);
+  --r:        16px;
+  --r2:       12px;
+  --r3:       20px;
+}
+
+html { font-size: 16px; }
+body { background: var(--bg); color: var(--ink); font-family: 'DM Sans', sans-serif; min-height: 100vh; padding-bottom: 120px; }
+
+/* ── NOTIFICATION BANNER ── */
+#banner { display: none; padding: 11px 16px; border-bottom: 1px solid rgba(83,74,183,.15); }
+#banner.default { background: var(--purple-l); }
+#banner.granted { background: var(--green-l); }
+#banner.denied  { background: var(--red-l); }
+#banner-inner { max-width: 700px; margin: 0 auto; display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+#banner-msg { font-size: 13px; flex: 1; min-width: 180px; line-height: 1.5; }
+#banner.default #banner-msg { color: var(--purple2); }
+#banner.granted #banner-msg { color: var(--green); }
+#banner.denied  #banner-msg { color: var(--red); }
+.bbtn { height: 32px; padding: 0 14px; border-radius: 16px; border: none; font-family: 'DM Sans', sans-serif; font-size: 12px; font-weight: 500; cursor: pointer; white-space: nowrap; transition: opacity .15s; }
+.bbtn:hover { opacity: .85; }
+#btn-allow   { background: var(--purple); color: white; }
+#btn-test    { background: var(--green);  color: white; display: none; }
+#btn-dismiss { background: transparent; color: var(--ink3); }
+
+/* ── TOP BAR ── */
+.topbar { background: var(--bg); border-bottom: 1px solid var(--border); position: sticky; top: 0; z-index: 100; padding: 0 16px; }
+.topbar-inner { max-width: 700px; margin: 0 auto; display: flex; align-items: center; gap: 12px; height: 58px; }
+.app-title { font-family: 'Lora', serif; font-size: 21px; font-weight: 600; color: var(--purple2); flex-shrink: 0; letter-spacing: -.3px; }
+.search-wrap { flex: 1; position: relative; }
+.search-wrap.focused { z-index: 110; }
+.search-wrap svg { position: absolute; left: 11px; top: 50%; transform: translateY(-50%); pointer-events: none; }
+#search { width: 100%; height: 38px; border: 1.5px solid var(--border); border-radius: 19px; background: var(--surface); padding: 0 14px 0 36px; font-family: 'DM Sans', sans-serif; font-size: 14px; color: var(--ink); outline: none; transition: border-color .2s, box-shadow .2s, border-radius .2s; }
+#search::placeholder { color: var(--ink3); }
+#search:focus { border-color: var(--purple); box-shadow: 0 0 0 3px rgba(83,74,183,.12); border-radius: 16px 16px 0 0; }
+#search.has-dropdown { border-radius: 16px 16px 0 0; border-color: var(--purple); }
+
+/* Search recent dropdown */
+#search-dropdown { display: none; position: absolute; top: 100%; left: 0; right: 0; background: var(--surface); border: 1.5px solid var(--purple); border-top: none; border-radius: 0 0 16px 16px; box-shadow: 0 8px 24px rgba(83,74,183,.12); z-index: 10; overflow: hidden; }
+#search-dropdown.show { display: block; animation: dropFade .15s ease-out; }
+@keyframes dropFade { from { opacity:0; transform:translateY(-4px); } to { opacity:1; transform:translateY(0); } }
+.search-drop-label { font-size: 10px; font-weight: 500; text-transform: uppercase; letter-spacing: .8px; color: var(--ink3); padding: 10px 14px 6px; }
+.search-drop-item { display: flex; align-items: center; gap: 10px; padding: 9px 14px; cursor: pointer; transition: background .12s; border-top: 0.5px solid var(--border2); }
+.search-drop-item:hover { background: var(--purple-l); }
+.search-drop-title { font-size: 13px; color: var(--ink); font-weight: 500; flex: 1; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.search-drop-time  { font-size: 11px; color: var(--ink3); flex-shrink: 0; }
+.search-drop-dot   { width: 7px; height: 7px; border-radius: 50%; flex-shrink: 0; }
+
+/* ── FILTER BAR ── */
+.filter-bar { max-width: 700px; margin: 0 auto; display: flex; gap: 6px; padding: 10px 16px; overflow-x: auto; scrollbar-width: none; }
+.filter-bar::-webkit-scrollbar { display: none; }
+.ftab { height: 30px; padding: 0 13px; border-radius: 15px; border: 1.5px solid var(--border); background: transparent; font-family: 'DM Sans', sans-serif; font-size: 12px; font-weight: 500; color: var(--ink2); cursor: pointer; white-space: nowrap; transition: all .15s; flex-shrink: 0; display: flex; align-items: center; gap: 5px; }
+.ftab:hover { border-color: var(--purple); color: var(--purple); }
+.ftab.active { background: var(--purple); border-color: var(--purple); color: white; }
+.ftab .ftab-dot { width: 7px; height: 7px; border-radius: 50%; flex-shrink: 0; }
+.ftab.hash-tab { border-color: rgba(83,74,183,.25); color: var(--purple); background: var(--purple-l); }
+.ftab.hash-tab.active { background: var(--purple); color: white; }
+.ftab-count { font-size: 10px; opacity: .7; }
+
+/* ── MAIN WRAP ── */
+.notes-wrap { max-width: 700px; margin: 0 auto; padding: 4px 16px 0; }
+.section-label { font-size: 11px; font-weight: 500; text-transform: uppercase; letter-spacing: 1px; color: var(--ink3); padding: 14px 0 8px; }
+/* Shared horizontal scroll row — used for both pinned and all-notes */
+.hrow-wrap { overflow-x: auto; scrollbar-width: none; padding: 2px 0 10px; margin: 0 -16px; padding-left: 16px; }
+.hrow-wrap::-webkit-scrollbar { display: none; }
+.hrow { display: flex; gap: 10px; width: max-content; padding-right: 16px; animation: gridFade .18s ease-out; }
+@keyframes gridFade { from { opacity:.5; } to { opacity:1; } }
+/* All-notes cards: slightly wider than pinned */
+.hrow .note-card { width: 220px; min-height: 140px; flex-shrink: 0; }
+@media (min-width: 600px) { .hrow .note-card { width: 240px; } }
+
+/* ── NOTE CARD ── */
+.note-card { background: var(--surface); border: 1.5px solid var(--border2); border-radius: var(--r); padding: 14px; cursor: pointer; transition: box-shadow .18s, transform .18s, border-color .18s; position: relative; overflow: hidden; min-height: 118px; display: flex; flex-direction: column; gap: 7px; }
+.note-card:hover { box-shadow: 0 4px 24px rgba(83,74,183,.14), 0 0 0 1px rgba(83,74,183,.12); transform: translateY(-2px); border-color: rgba(83,74,183,.2); }
+.note-card:active { transform: scale(.98); transition: transform .1s ease-out; }
+.note-card.card-entering { animation: cardPop .2s ease-out; }
+@keyframes cardPop { from { opacity:.6; transform:scale(.98); } to { opacity:1; transform:scale(1); } }
+.note-card.pinned::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 3px; background: var(--purple); border-radius: var(--r) var(--r) 0 0; }
+
+/* Card colour tints */
+.note-card.tint-purple { background: #F3F0FF; border-color: rgba(83,74,183,.15); }
+.note-card.tint-teal   { background: #EDFAF4; border-color: rgba(29,158,117,.15); }
+.note-card.tint-amber  { background: #FEF6E8; border-color: rgba(186,117,23,.15); }
+.note-card.tint-pink   { background: #FDF0F5; border-color: rgba(212,83,126,.15); }
+.note-card.tint-blue   { background: #EEF4FF; border-color: rgba(55,138,221,.15); }
+
+.card-dot { width: 8px; height: 8px; border-radius: 50%; display: inline-block; flex-shrink: 0; }
+.card-hdr { display: flex; align-items: flex-start; justify-content: space-between; gap: 8px; }
+.card-title { font-family: 'Lora', serif; font-size: 14px; font-weight: 600; line-height: 1.35; color: var(--ink); flex: 1; word-break: break-word; }
+.card-title mark { background: rgba(83,74,183,.18); color: var(--purple2); border-radius: 3px; padding: 0 2px; font-style: normal; }
+.card-body { font-size: 12px; color: var(--ink2); line-height: 1.55; overflow: hidden; display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; flex: 1; }
+.card-body mark { background: rgba(83,74,183,.14); color: var(--purple2); border-radius: 2px; padding: 0 1px; font-style: normal; }
+.card-footer { display: flex; align-items: center; gap: 5px; margin-top: auto; flex-wrap: wrap; }
+.card-date { font-size: 10px; color: var(--ink3); flex: 1; }
+
+/* Pills */
+.pill { font-size: 10px; padding: 2px 8px; border-radius: 10px; font-weight: 500; white-space: nowrap; display: inline-flex; align-items: center; gap: 3px; }
+.cat-pill { background: var(--purple-l); color: var(--purple2); }
+.hash-pill { background: var(--green-l); color: #085041; }
+.reminder-pill { font-size: 10px; padding: 2px 7px; border-radius: 10px; display: inline-flex; align-items: center; gap: 3px; font-weight: 500; }
+.reminder-pill.upcoming { background: rgba(83,74,183,.12); color: var(--purple2); }
+.reminder-pill.overdue  { background: var(--red-l);   color: var(--red); }
+.reminder-pill.done     { background: var(--green-l); color: var(--green); }
+
+.empty-state { text-align: center; padding: 56px 20px; color: var(--ink3); }
+.empty-state .es-big { font-size: 38px; margin-bottom: 10px; }
+.empty-state p { font-size: 15px; }
+
+/* ── HORIZONTAL PINNED SCROLL (reuses hrow-wrap) ── */
+.pinned-scroll { display: flex; gap: 10px; width: max-content; padding-right: 16px; animation: gridFade .18s ease-out; }
+.pinned-hcard { background: var(--surface); border: 1.5px solid var(--border2); border-radius: var(--r); padding: 14px; cursor: pointer; transition: box-shadow .18s, transform .18s; position: relative; overflow: hidden; width: 200px; min-height: 130px; display: flex; flex-direction: column; gap: 7px; flex-shrink: 0; }
+.pinned-hcard:hover { box-shadow: 0 4px 24px rgba(83,74,183,.14), 0 0 0 1px rgba(83,74,183,.12); transform: translateY(-2px); border-color: rgba(83,74,183,.2); }
+.pinned-hcard:active { transform: scale(.98); transition: transform .1s ease-out; }
+.pinned-hcard::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 3px; background: var(--purple); border-radius: var(--r) var(--r) 0 0; }
+.pinned-hcard.tint-purple { background: #F3F0FF; border-color: rgba(83,74,183,.15); }
+.pinned-hcard.tint-teal   { background: #EDFAF4; border-color: rgba(29,158,117,.15); }
+.pinned-hcard.tint-amber  { background: #FEF6E8; border-color: rgba(186,117,23,.15); }
+.pinned-hcard.tint-pink   { background: #FDF0F5; border-color: rgba(212,83,126,.15); }
+.pinned-hcard.tint-blue   { background: #EEF4FF; border-color: rgba(55,138,221,.15); }
+.pinned-hcard .card-title { font-size: 13px; }
+.pinned-hcard .card-body  { font-size: 11px; -webkit-line-clamp: 2; }
+
+/* Due bubble */
+.due-bubble { display: inline-flex; align-items: center; gap: 4px; background: #FDECEA; color: #B5361E; border: 1px solid rgba(181,54,30,.2); border-radius: 20px; padding: 3px 9px 3px 7px; font-size: 11px; font-weight: 600; letter-spacing: .1px; flex-shrink: 0; }
+.due-bubble-dot { width: 6px; height: 6px; border-radius: 50%; background: #B5361E; flex-shrink: 0; }
+
+/* Scroll progress dots */
+.scroll-dots { display: flex; gap: 4px; justify-content: center; padding: 2px 0 4px; }
+.sdot { width: 5px; height: 5px; border-radius: 50%; background: rgba(83,74,183,.2); transition: all .2s; }
+.sdot.active { background: var(--purple); width: 14px; border-radius: 3px; }
+
+/* ── FAB ── */
+.fab { position: fixed; bottom: 26px; right: max(16px, calc(50vw - 350px + 16px)); width: 54px; height: 54px; border-radius: 27px; background: var(--purple); color: white; border: none; cursor: pointer; box-shadow: 0 4px 20px rgba(83,74,183,.35); display: flex; align-items: center; justify-content: center; font-size: 24px; line-height: 1; transition: transform .15s, box-shadow .15s; z-index: 90; }
+.fab:hover { transform: scale(1.07); box-shadow: 0 6px 28px rgba(83,74,183,.45); }
+.fab:active { transform: scale(.96); }
+
+/* ── OVERLAY + MODAL ── */
+.overlay { position: fixed; inset: 0; background: rgba(26,21,53,.45); z-index: 200; display: flex; align-items: flex-end; justify-content: center; opacity: 0; pointer-events: none; transition: opacity .2s; }
+.overlay.open { opacity: 1; pointer-events: all; }
+@media (min-width: 560px) { .overlay { align-items: center; padding: 20px; } }
+.modal { background: var(--bg); border-radius: var(--r) var(--r) 0 0; width: 100%; max-width: 620px; max-height: 92vh; overflow-y: auto; padding-bottom: 40px; transform: translateY(40px); transition: transform .22s cubic-bezier(.34,1.2,.64,1); }
+@media (min-width: 560px) { .modal { border-radius: var(--r); transform: scale(.96) translateY(12px); } }
+.overlay.open .modal { transform: none; }
+.modal::-webkit-scrollbar { width: 4px; }
+.modal::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
+.modal-handle { width: 34px; height: 4px; background: var(--purple-m); border-radius: 2px; margin: 12px auto 0; display: block; opacity: .4; }
+@media (min-width: 560px) { .modal-handle { display: none; } }
+.modal-header { display: flex; align-items: center; justify-content: space-between; padding: 16px 20px 0; gap: 12px; }
+.modal-title { font-family: 'Lora', serif; font-size: 18px; font-weight: 600; color: var(--purple2); }
+.btn-icon { width: 34px; height: 34px; border-radius: 17px; border: none; background: var(--purple-l); cursor: pointer; display: flex; align-items: center; justify-content: center; color: var(--purple); transition: background .15s; flex-shrink: 0; }
+.btn-icon:hover { background: var(--bg2); }
+
+/* ── FORM ── */
+.form-body { padding: 14px 20px 0; display: flex; flex-direction: column; gap: 13px; }
+.form-group { display: flex; flex-direction: column; gap: 5px; }
+.form-label { font-size: 11px; font-weight: 500; text-transform: uppercase; letter-spacing: .7px; color: var(--ink3); }
+.form-input, .form-textarea { width: 100%; border: 1.5px solid var(--border); border-radius: var(--r2); background: var(--surface); font-family: 'DM Sans', sans-serif; font-size: 15px; color: var(--ink); outline: none; transition: border-color .15s, box-shadow .15s; }
+.form-input { height: 46px; padding: 0 14px; }
+.form-textarea { padding: 11px 14px; resize: vertical; min-height: 96px; line-height: 1.6; }
+.form-input:focus, .form-textarea:focus { border-color: var(--purple); box-shadow: 0 0 0 3px rgba(83,74,183,.1); }
+
+/* Tag input hint */
+.tag-hint { font-size: 11px; color: var(--ink3); margin-top: 3px; }
+.live-tags { display: flex; flex-wrap: wrap; gap: 5px; min-height: 0; }
+
+/* Category chips */
+.cat-chips { display: flex; flex-wrap: wrap; gap: 6px; }
+.cat-chip { height: 30px; padding: 0 12px; border-radius: 15px; border: 1.5px solid var(--border); background: transparent; font-family: 'DM Sans', sans-serif; font-size: 12px; color: var(--ink2); cursor: pointer; display: flex; align-items: center; gap: 6px; transition: all .15s; white-space: nowrap; }
+.cat-chip.sel { border-width: 2px; font-weight: 500; }
+.cat-chip .chip-dot { width: 7px; height: 7px; border-radius: 50%; }
+.new-cat-chip { border-style: dashed; color: var(--purple); border-color: var(--purple-m); }
+.new-cat-chip:hover { background: var(--purple-l); }
+
+/* Colour picker */
+.color-picker { display: flex; gap: 8px; align-items: center; }
+.color-swatch { width: 26px; height: 26px; border-radius: 13px; border: 2.5px solid transparent; cursor: pointer; transition: transform .12s; flex-shrink: 0; }
+.color-swatch:hover { transform: scale(1.15); }
+.color-swatch.sel { border-color: var(--purple2); }
+.color-swatch.c-none { background: var(--surface); border: 1.5px solid var(--border); }
+
+/* Toggle */
+.toggle-row { display: flex; align-items: center; justify-content: space-between; padding: 11px 14px; background: var(--surface); border: 1.5px solid var(--border2); border-radius: var(--r2); }
+.toggle-lbl { font-size: 14px; color: var(--ink); }
+.toggle { width: 42px; height: 24px; background: var(--border); border-radius: 12px; position: relative; cursor: pointer; border: none; transition: background .2s; flex-shrink: 0; }
+.toggle.on { background: var(--purple); }
+.toggle::after { content: ''; position: absolute; width: 18px; height: 18px; border-radius: 50%; background: white; top: 3px; left: 3px; transition: transform .2s; box-shadow: 0 1px 4px rgba(0,0,0,.18); }
+.toggle.on::after { transform: translateX(18px); }
+
+/* Form actions */
+.form-actions { display: flex; gap: 10px; padding: 18px 20px 0; flex-wrap: wrap; }
+.btn { height: 46px; border-radius: 23px; border: none; font-family: 'DM Sans', sans-serif; font-size: 14px; font-weight: 500; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px; transition: all .15s; padding: 0 22px; }
+.btn-primary { background: var(--purple); color: white; flex: 1; min-width: 110px; }
+.btn-primary:hover { background: var(--purple2); }
+.btn-primary:active { transform: scale(.97); }
+.btn-danger { background: var(--red-l); color: var(--red); }
+.btn-danger:hover { background: #fad4cf; }
+.btn-outline { height: 46px; border-radius: 23px; border: 1.5px solid var(--border); background: transparent; font-family: 'DM Sans', sans-serif; font-size: 14px; cursor: pointer; padding: 0 18px; color: var(--ink); transition: all .15s; }
+.btn-outline:hover { border-color: var(--purple); color: var(--purple); }
+
+/* ── DETAIL VIEW ── */
+.detail-body { padding: 14px 20px 0; }
+.detail-content { font-size: 15px; color: var(--ink2); line-height: 1.75; white-space: pre-wrap; margin-bottom: 14px; }
+.detail-meta { display: flex; flex-wrap: wrap; gap: 7px; align-items: center; margin-bottom: 14px; }
+.detail-reminder { background: var(--surface); border: 1.5px solid var(--border2); border-radius: var(--r2); padding: 13px; margin-bottom: 14px; display: flex; align-items: center; gap: 11px; }
+.r-circle { width: 38px; height: 38px; border-radius: 19px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+.detail-actions { display: flex; gap: 10px; padding: 18px 20px 0; flex-wrap: wrap; }
+
+/* Confirm box */
+.confirm-box { background: var(--surface); border: 1.5px solid var(--red-l); border-radius: var(--r2); padding: 18px; margin: 14px 20px 0; }
+.confirm-box p { font-size: 14px; color: var(--ink2); line-height: 1.6; margin-bottom: 13px; }
+.confirm-actions { display: flex; gap: 10px; }
+
+/* ── TEMPLATE PICKER ── */
+.template-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; padding: 14px 20px 0; }
+.tpl-card { background: var(--surface); border: 1.5px solid var(--border); border-radius: var(--r2); padding: 13px; cursor: pointer; transition: border-color .15s, background .15s; }
+.tpl-card:hover { border-color: var(--purple); background: var(--purple-l); }
+.tpl-icon { font-size: 20px; margin-bottom: 6px; }
+.tpl-name { font-size: 13px; font-weight: 500; color: var(--ink); margin-bottom: 3px; }
+.tpl-desc { font-size: 11px; color: var(--ink3); line-height: 1.4; }
+
+/* ── CATEGORY MANAGER MODAL ── */
+.cat-manager { padding: 14px 20px 0; display: flex; flex-direction: column; gap: 10px; }
+.cat-row { display: flex; align-items: center; gap: 10px; background: var(--surface); border: 1.5px solid var(--border2); border-radius: var(--r2); padding: 11px 14px; }
+.cat-row-dot { width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0; }
+.cat-row-name { font-size: 14px; color: var(--ink); flex: 1; }
+.cat-row-count { font-size: 12px; color: var(--ink3); }
+.cat-row-del { width: 28px; height: 28px; border-radius: 14px; border: none; background: var(--red-l); color: var(--red); cursor: pointer; font-size: 14px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+.cat-row-del:hover { background: #fad4cf; }
+.new-cat-form { display: flex; gap: 8px; }
+.new-cat-input { flex: 1; height: 40px; border: 1.5px solid var(--border); border-radius: var(--r2); background: var(--surface); font-family: 'DM Sans', sans-serif; font-size: 14px; color: var(--ink); padding: 0 12px; outline: none; }
+.new-cat-input:focus { border-color: var(--purple); }
+.color-dots { display: flex; gap: 5px; }
+.cat-dot-pick { width: 22px; height: 22px; border-radius: 11px; border: 2px solid transparent; cursor: pointer; transition: transform .12s; }
+.cat-dot-pick:hover { transform: scale(1.15); }
+.cat-dot-pick.sel { border-color: var(--purple2); }
+
+/* ── TOAST ── */
+.toast { position: fixed; bottom: 96px; left: 50%; transform: translateX(-50%) translateY(20px); background: var(--purple2); color: white; padding: 11px 20px; border-radius: 22px; font-size: 13px; font-weight: 500; opacity: 0; transition: opacity .2s, transform .2s; z-index: 500; white-space: nowrap; pointer-events: none; box-shadow: var(--shadow); }
+.toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+
+/* ── IN-APP NOTIF ── */
+.inapp { position: fixed; top: 66px; right: 14px; max-width: 290px; background: var(--surface); border: 1.5px solid var(--border); border-radius: var(--r); padding: 13px 32px 13px 14px; box-shadow: var(--shadow); z-index: 300; transform: translateX(120%); transition: transform .3s cubic-bezier(.34,1.2,.64,1); cursor: pointer; }
+.inapp.show { transform: translateX(0); }
+.inapp-hdr { display: flex; align-items: center; gap: 7px; margin-bottom: 5px; }
+.inapp-icon { width: 26px; height: 26px; border-radius: 13px; background: var(--purple-l); display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+.inapp-title { font-size: 12px; font-weight: 500; color: var(--ink); }
+.inapp-body  { font-size: 11px; color: var(--ink2); line-height: 1.5; }
+.inapp-close { position: absolute; top: 9px; right: 9px; width: 22px; height: 22px; border-radius: 11px; border: none; background: var(--bg); cursor: pointer; font-size: 11px; color: var(--ink3); display: flex; align-items: center; justify-content: center; }
+</style>
+</head>
+<body>
+
+<!-- NOTIFICATION BANNER -->
+<div id="banner">
+  <div id="banner-inner">
+    <p id="banner-msg"></p>
+    <button class="bbtn" id="btn-allow">Turn on reminders</button>
+    <button class="bbtn" id="btn-test">Send test</button>
+    <button class="bbtn" id="btn-dismiss">Dismiss</button>
+  </div>
+</div>
+
+<!-- TOP BAR -->
+<div class="topbar">
+  <div class="topbar-inner">
+    <div class="app-title">My Notes</div>
+    <div class="search-wrap">
+      <svg width="15" height="15" viewBox="0 0 15 15" fill="none">
+        <circle cx="6.5" cy="6.5" r="4.5" stroke="#9D93C0" stroke-width="1.4"/>
+        <path d="M10 10l3 3" stroke="#9D93C0" stroke-width="1.4" stroke-linecap="round"/>
+      </svg>
+      <input type="text" id="search" placeholder="Search notes, #tags…" autocomplete="off">
+      <div id="search-dropdown"></div>
+    </div>
+  </div>
+</div>
+
+<!-- FILTER BAR -->
+<div class="filter-bar" id="filter-bar"></div>
+
+<!-- NOTES -->
+<div class="notes-wrap">
+  <div id="notes-container"></div>
+  <div class="empty-state" id="empty-state" style="display:none">
+    <div class="es-big">🔍</div>
+    <p>No notes found</p>
+  </div>
+</div>
+
+<!-- FAB -->
+<button class="fab" id="fab-add" title="Add new note">+</button>
+
+<!-- MODAL -->
+<div class="overlay" id="overlay"><div class="modal" id="modal"></div></div>
+
+<!-- TOAST -->
+<div class="toast" id="toast"></div>
+
+<!-- IN-APP NOTIF -->
+<div class="inapp" id="inapp-notif">
+  <button class="inapp-close" id="inapp-close">✕</button>
+  <div class="inapp-hdr">
+    <div class="inapp-icon">
+      <svg width="13" height="13" viewBox="0 0 24 24" fill="none">
+        <path d="M18 8a6 6 0 10-12 0c0 7-3 9-3 9h18s-3-2-3-9" stroke="#534AB7" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+        <path d="M13.73 21a2 2 0 01-3.46 0" stroke="#534AB7" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+      </svg>
+    </div>
+    <div class="inapp-title" id="inapp-title">Reminder</div>
+  </div>
+  <div class="inapp-body" id="inapp-body"></div>
+</div>
+
+<script>
+'use strict';
+
+/* ══════════════════════════════════════════
+   CATEGORY SYSTEM
+══════════════════════════════════════════ */
+const DEFAULT_CATS = [
+  { id:'work',     name:'Work',     color:'#378ADD' },
+  { id:'personal', name:'Personal', color:'#1D9E75' },
+  { id:'shopping', name:'Shopping', color:'#C9601A' },
+  { id:'ideas',    name:'Ideas',    color:'#7F77DD' },
+];
+const CAT_COLORS = ['#378ADD','#1D9E75','#C9601A','#7F77DD','#D4537E','#BA7517','#E24B4A','#534AB7'];
+
+function loadCats() {
+  return JSON.parse(localStorage.getItem('mynotes_cats') || 'null') || DEFAULT_CATS;
+}
+function saveCats(c) { localStorage.setItem('mynotes_cats', JSON.stringify(c)); }
+
+let categories = loadCats();
+
+function getCat(id) { return categories.find(c => c.id === id) || null; }
+
+/* ══════════════════════════════════════════
+   NOTE TINT COLOURS
+══════════════════════════════════════════ */
+const TINTS = [
+  { id:'none',   label:'None',   cls:'' },
+  { id:'purple', label:'Purple', cls:'tint-purple', swatch:'#E8E4FF' },
+  { id:'teal',   label:'Teal',   cls:'tint-teal',   swatch:'#C8F0DF' },
+  { id:'amber',  label:'Amber',  cls:'tint-amber',  swatch:'#FAE4B0' },
+  { id:'pink',   label:'Pink',   cls:'tint-pink',   swatch:'#FAD5E8' },
+  { id:'blue',   label:'Blue',   cls:'tint-blue',   swatch:'#C8DEFF' },
+];
+
+/* ══════════════════════════════════════════
+   SEED DATA
+══════════════════════════════════════════ */
+function seedNotes() {
+  const f  = m => new Date(Date.now() + m*60000).toISOString();
+  const p  = m => new Date(Date.now() - m*60000).toISOString();
+  const nd = h => { const t=new Date(); t.setDate(t.getDate()+1); t.setHours(h,0,0,0); return t.toISOString(); };
+  return [
+    { id:1, title:'Team meeting prep',
+      body:'Prepare slides for Q2 review.\n\nAgenda:\n- Revenue numbers\n- New hires update\n- Client pipeline',
+      category:'work', tags:['urgent','q2'], tint:'purple', pinned:true,
+      reminderEnabled:true, reminderTime:f(30), reminderDone:false,
+      createdAt:new Date(Date.now()-7200000).toISOString() },
+    { id:2, title:'Grocery list',
+      body:'Milk (2L), eggs (dozen), bread, tomatoes, onions, chicken, yogurt, bananas, coffee powder',
+      category:'shopping', tags:['today'], tint:'amber', pinned:false,
+      reminderEnabled:true, reminderTime:nd(10), reminderDone:false,
+      createdAt:new Date(Date.now()-18000000).toISOString() },
+    { id:3, title:'App idea — local delivery',
+      body:'Hyperlocal delivery for small kirana stores. Partner with 10 stores in one colony first. Test with WhatsApp ordering before building an app.',
+      category:'ideas', tags:['idea','build'], tint:'teal', pinned:false,
+      reminderEnabled:false, reminderTime:'', reminderDone:false,
+      createdAt:new Date(Date.now()-86400000).toISOString() },
+    { id:4, title:'Call accountant',
+      body:'Ask about GST filing deadline for this quarter. Check if we need to update the business address.',
+      category:'work', tags:['urgent','finance'], tint:'none', pinned:false,
+      reminderEnabled:true, reminderTime:p(45), reminderDone:false,
+      createdAt:new Date(Date.now()-93600000).toISOString() },
+    { id:5, title:"Mum's birthday gift",
+      body:"Saree from Fab India or a spa voucher. Budget around Rs.3,000. Order by Thursday for Saturday delivery.",
+      category:'personal', tags:['gift'], tint:'pink', pinned:true,
+      reminderEnabled:true, reminderTime:nd(9), reminderDone:false,
+      createdAt:new Date(Date.now()-172800000).toISOString() },
+    { id:6, title:'Vendor follow-up',
+      body:"Rajesh from SunPack has not sent the revised quote. Follow up by email and call if no reply by evening.",
+      category:'work', tags:['client'], tint:'none', pinned:false,
+      reminderEnabled:false, reminderTime:'', reminderDone:false,
+      createdAt:new Date(Date.now()-259200000).toISOString() },
+  ];
+}
+
+/* ══════════════════════════════════════════
+   STATE
+══════════════════════════════════════════ */
+let notes      = JSON.parse(localStorage.getItem('mynotes_v5') || 'null') || seedNotes();
+let nextId     = Math.max(0, ...notes.map(n => n.id)) + 1;
+let activeFilter = 'all';   // 'all'|'pinned'|'today'|'reminder'|cat.id|'#tag'
+let searchQ    = '';
+let modalMode  = null;
+let activeId   = null;
+let editForm   = {};
+let timers     = {};
+let swReg      = null;
+
+function save() { localStorage.setItem('mynotes_v5', JSON.stringify(notes)); }
+
+/* ══════════════════════════════════════════
+   TAG UTILITIES
+══════════════════════════════════════════ */
+function extractTags(text) {
+  const found = [];
+  const re = /#([a-zA-Z0-9_]+)/g;
+  let m;
+  while ((m = re.exec(text)) !== null) {
+    const t = m[1].toLowerCase();
+    if (!found.includes(t)) found.push(t);
+  }
+  return found;
+}
+function allTags() {
+  const set = new Set();
+  notes.forEach(n => (n.tags||[]).forEach(t => set.add(t)));
+  return [...set].sort();
+}
+
+/* ══════════════════════════════════════════
+   UTILS
+══════════════════════════════════════════ */
+function esc(s) {
+  return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+function highlight(text, q) {
+  if (!q) return esc(text);
+  const safe = q.replace(/[.*+?^${}()|[\]\\]/g,'\\$&');
+  return esc(text).replace(new RegExp(`(${safe})`, 'gi'), '<mark>$1</mark>');
+}
+function rStatus(n) {
+  if (!n.reminderEnabled || !n.reminderTime) return null;
+  if (n.reminderDone) return 'done';
+  return new Date(n.reminderTime) < new Date() ? 'overdue' : 'upcoming';
+}
+function fmtAgo(iso) {
+  const d = Date.now() - new Date(iso).getTime();
+  if (d < 60000)    return 'Just now';
+  if (d < 3600000)  return Math.floor(d/60000)+'m ago';
+  if (d < 86400000) return Math.floor(d/3600000)+'h ago';
+  const dt=new Date(iso), o={day:'numeric',month:'short'};
+  if (dt.getFullYear()!==new Date().getFullYear()) o.year='numeric';
+  return dt.toLocaleDateString('en-IN',o);
+}
+function fmtDT(iso) {
+  if (!iso) return '';
+  const d=new Date(iso);
+  const today=new Date(); today.setHours(0,0,0,0);
+  const tmrw=new Date(today); tmrw.setDate(today.getDate()+1);
+  const dd=new Date(d); dd.setHours(0,0,0,0);
+  const t=d.toLocaleTimeString('en-IN',{hour:'2-digit',minute:'2-digit',hour12:true});
+  if (dd.getTime()===today.getTime()) return 'Today at '+t;
+  if (dd.getTime()===tmrw.getTime())  return 'Tomorrow at '+t;
+  return d.toLocaleDateString('en-IN',{day:'numeric',month:'short'})+' at '+t;
+}
+function toInputVal(iso) {
+  if (!iso) return '';
+  const d=new Date(iso), p=n=>String(n).padStart(2,'0');
+  return `${d.getFullYear()}-${p(d.getMonth()+1)}-${p(d.getDate())}T${p(d.getHours())}:${p(d.getMinutes())}`;
+}
+function isToday(iso) {
+  const d=new Date(iso), t=new Date();
+  return d.getDate()===t.getDate() && d.getMonth()===t.getMonth() && d.getFullYear()===t.getFullYear();
+}
+
+/* ══════════════════════════════════════════
+   TOAST
+══════════════════════════════════════════ */
+let toastT;
+function toast(msg) {
+  const el=document.getElementById('toast');
+  el.textContent=msg; el.classList.add('show');
+  clearTimeout(toastT);
+  toastT=setTimeout(()=>el.classList.remove('show'),2800);
+}
+
+/* ══════════════════════════════════════════
+   MODAL
+══════════════════════════════════════════ */
+function showModal(html) {
+  document.getElementById('modal').innerHTML=html;
+  document.getElementById('overlay').classList.add('open');
+  document.getElementById('modal').scrollTop=0;
+  document.body.style.overflow='hidden';
+}
+function closeModal() {
+  document.getElementById('overlay').classList.remove('open');
+  document.body.style.overflow='';
+  modalMode=null; activeId=null;
+}
+
+/* ══════════════════════════════════════════
+   FILTER BAR
+══════════════════════════════════════════ */
+function renderFilterBar() {
+  const bar = document.getElementById('filter-bar');
+  const tags = allTags();
+  const todayCount = notes.filter(n => isToday(n.createdAt)||isToday(n.updatedAt||n.createdAt)).length;
+  const reminderCount = notes.filter(n => n.reminderEnabled && !n.reminderDone).length;
+
+  let html = '';
+  const tab = (id, label, extra='') =>
+    `<button class="ftab${activeFilter===id?' active':''}" data-filter="${id}">${label}${extra}</button>`;
+
+  html += tab('all', 'All');
+  html += tab('pinned', 'Pinned');
+  if (todayCount) html += tab('today', 'Today', `<span class="ftab-count">${todayCount}</span>`);
+  if (reminderCount) html += tab('reminder', 'Reminders', `<span class="ftab-count">${reminderCount}</span>`);
+
+  categories.forEach(cat => {
+    html += `<button class="ftab${activeFilter===cat.id?' active':''}" data-filter="${cat.id}">
+      <span class="ftab-dot" style="background:${cat.color}"></span>${cat.name}
+    </button>`;
+  });
+
+  tags.forEach(tag => {
+    html += `<button class="ftab hash-tab${activeFilter==='#'+tag?' active':''}" data-filter="#${tag}">#${tag}</button>`;
+  });
+
+  html += `<button class="ftab" id="manage-cats-btn" style="border-style:dashed;color:var(--purple);border-color:var(--purple-m)">+ Category</button>`;
+
+  bar.innerHTML = html;
+
+  bar.querySelectorAll('.ftab[data-filter]').forEach(btn => {
+    btn.addEventListener('click', () => {
+      activeFilter = btn.dataset.filter;
+      renderFilterBar();
+      renderNotes();
+    });
+  });
+
+  const manageBtn = document.getElementById('manage-cats-btn');
+  if (manageBtn) manageBtn.addEventListener('click', openCategoryManager);
+}
+
+/* ══════════════════════════════════════════
+   RENDER NOTES
+══════════════════════════════════════════ */
+function getList() {
+  let list = [...notes];
+  const q = searchQ.trim().toLowerCase();
+
+  if (q) {
+    // Search across title, body, tags, category name
+    list = list.filter(n => {
+      const cat = getCat(n.category);
+      return n.title.toLowerCase().includes(q)
+          || n.body.toLowerCase().includes(q)
+          || (n.tags||[]).some(t => t.includes(q.replace('#','')))
+          || (cat && cat.name.toLowerCase().includes(q));
+    });
+  }
+
+  if      (activeFilter === 'pinned')   list = list.filter(n => n.pinned);
+  else if (activeFilter === 'today')    list = list.filter(n => isToday(n.createdAt)||(n.updatedAt&&isToday(n.updatedAt)));
+  else if (activeFilter === 'reminder') list = list.filter(n => n.reminderEnabled && !n.reminderDone);
+  else if (activeFilter.startsWith('#')) {
+    const tag = activeFilter.slice(1);
+    list = list.filter(n => (n.tags||[]).includes(tag));
+  } else if (activeFilter !== 'all') {
+    list = list.filter(n => n.category === activeFilter);
+  }
+
+  list.sort((a,b) => {
+    if (a.pinned && !b.pinned) return -1;
+    if (!a.pinned && b.pinned) return 1;
+    return new Date(b.createdAt) - new Date(a.createdAt);
+  });
+  return list;
+}
+
+/* Sort pinned notes: overdue first → upcoming by time → no reminder by createdAt */
+function sortPinned(pinned) {
+  const now = Date.now();
+  return [...pinned].sort((a, b) => {
+    const ra = a.reminderEnabled && !a.reminderDone && a.reminderTime ? new Date(a.reminderTime).getTime() : null;
+    const rb = b.reminderEnabled && !b.reminderDone && b.reminderTime ? new Date(b.reminderTime).getTime() : null;
+    const aOver = ra && ra < now;
+    const bOver = rb && rb < now;
+    // Both overdue: most overdue (smallest time) first
+    if (aOver && bOver) return ra - rb;
+    // One overdue: overdue goes first
+    if (aOver) return -1;
+    if (bOver) return 1;
+    // Both have upcoming reminder: earliest first
+    if (ra && rb) return ra - rb;
+    // One has upcoming reminder: reminder goes first
+    if (ra) return -1;
+    if (rb) return 1;
+    // Neither has reminder: most recently created first
+    return new Date(b.createdAt) - new Date(a.createdAt);
+  });
+}
+
+function pinnedScrollHTML(pinned, q) {
+  const sorted = sortPinned(pinned);
+  const cards = sorted.map(n => pinnedCardHTML(n, q)).join('');
+  const dots  = sorted.map((_, i) =>
+    `<div class="sdot${i===0?' active':''}" data-idx="${i}"></div>`
+  ).join('');
+  return `
+    <div class="section-label">Pinned</div>
+    <div class="hrow-wrap" id="pinned-scroll-wrap">
+      <div class="pinned-scroll" id="pinned-scroll">${cards}</div>
+    </div>
+    ${sorted.length > 1 ? `<div class="scroll-dots" id="scroll-dots">${dots}</div>` : ''}`;
+}
+
+function pinnedCardHTML(n, q='') {
+  const cat  = getCat(n.category);
+  const tint = TINTS.find(t => t.id===(n.tint||'none'));
+  const rs   = rStatus(n);
+  const tags = (n.tags||[]).slice(0,2);
+  const now  = Date.now();
+  const isOverdue = n.reminderEnabled && !n.reminderDone && n.reminderTime && new Date(n.reminderTime).getTime() < now;
+  // #due bubble: reminder overdue by more than 0ms (any overdue)
+  const dueBubble = isOverdue
+    ? `<span class="due-bubble"><span class="due-bubble-dot"></span>Due</span>`
+    : '';
+  const tagPills = tags.map(t=>`<span class="pill hash-pill">#${esc(t)}</span>`).join('');
+  return `<div class="pinned-hcard ${tint?tint.cls:''}" data-id="${n.id}">
+    <div class="card-hdr">
+      <div class="card-title">${highlight(n.title,q)}</div>
+    </div>
+    ${n.body?`<div class="card-body">${highlight(n.body.slice(0,100),q)}</div>`:''}
+    <div class="card-footer" style="margin-top:auto">
+      ${cat?`<span class="pill cat-pill"><span class="card-dot" style="background:${cat.color}"></span>${esc(cat.name)}</span>`:''}
+      ${tagPills}
+      ${dueBubble}
+      <span class="card-date" style="margin-left:auto">${fmtAgo(n.createdAt)}</span>
+    </div>
+  </div>`;
+}
+
+function renderNotes() {
+  const con   = document.getElementById('notes-container');
+  const empty = document.getElementById('empty-state');
+  const list  = getList();
+  const q     = searchQ.trim().toLowerCase();
+
+  if (!list.length) { con.innerHTML=''; empty.style.display=''; return; }
+  empty.style.display='none';
+
+  const showSections = activeFilter==='all' && !q;
+  const pinned = list.filter(n => n.pinned);
+  const rest   = list.filter(n => !n.pinned);
+
+  let html = '';
+  if (showSections && pinned.length) {
+    html += pinnedScrollHTML(pinned, q);
+    if (rest.length) html += `<div class="section-label">All notes</div>
+      <div class="hrow-wrap" id="all-notes-wrap">
+        <div class="hrow">${rest.map(n=>cardHTML(n,q)).join('')}</div>
+      </div>`;
+  } else {
+    html = `<div class="hrow-wrap" id="all-notes-wrap" style="margin-top:4px">
+      <div class="hrow">${list.map(n=>cardHTML(n,q)).join('')}</div>
+    </div>`;
+  }
+  con.innerHTML = html;
+
+  // Animate cards in
+  con.querySelectorAll('.note-card').forEach((el, i) => {
+    el.style.animationDelay = `${i * 18}ms`;
+    el.classList.add('card-entering');
+  });
+
+  // Click handlers for all cards
+  con.querySelectorAll('.note-card, .pinned-hcard').forEach(el =>
+    el.addEventListener('click', () => openView(parseInt(el.dataset.id)))
+  );
+
+  // Scroll dot sync for pinned row
+  const wrap = document.getElementById('pinned-scroll-wrap');
+  const scroll = document.getElementById('pinned-scroll');
+  if (wrap && scroll) {
+    wrap.addEventListener('scroll', () => {
+      const dots = document.querySelectorAll('#scroll-dots .sdot');
+      if (!dots.length) return;
+      const cardW = scroll.children[0] ? scroll.children[0].offsetWidth + 10 : 210;
+      const idx = Math.round(wrap.scrollLeft / cardW);
+      dots.forEach((d,i) => d.classList.toggle('active', i===idx));
+    }, { passive: true });
+  }
+}
+
+function cardHTML(n, q='') {
+  const cat   = getCat(n.category);
+  const tint  = TINTS.find(t => t.id === (n.tint||'none'));
+  const rs    = rStatus(n);
+  const tags  = n.tags||[];
+
+  let reminderBadge = '';
+  if (rs==='upcoming') reminderBadge=`<span class="reminder-pill upcoming"><svg width="9" height="9" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="2.5"/><path d="M12 6v6l4 2" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"/></svg>${fmtDT(n.reminderTime)}</span>`;
+  if (rs==='overdue')  reminderBadge=`<span class="reminder-pill overdue"><svg width="9" height="9" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="2.5"/><path d="M12 8v4m0 4h.01" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"/></svg>Overdue</span>`;
+  if (rs==='done')     reminderBadge=`<span class="reminder-pill done"><svg width="9" height="9" viewBox="0 0 24 24" fill="none"><polyline points="20 6 9 17 4 12" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/></svg>Done</span>`;
+
+  const tagPills = tags.slice(0,2).map(t => `<span class="pill hash-pill">#${esc(t)}</span>`).join('');
+
+  return `<div class="note-card${n.pinned?' pinned':''} ${tint?tint.cls:''}" data-id="${n.id}">
+    <div class="card-hdr">
+      <div class="card-title">${highlight(n.title, q)}</div>
+      ${n.pinned?`<svg width="11" height="11" viewBox="0 0 24 24" fill="${cat?cat.color:'#534AB7'}" style="flex-shrink:0;margin-top:2px"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0118 0z"/></svg>`:''}
+    </div>
+    ${n.body?`<div class="card-body">${highlight(n.body.slice(0,140), q)}</div>`:''}
+    <div class="card-footer">
+      ${cat?`<span class="pill cat-pill"><span class="card-dot" style="background:${cat.color}"></span>${esc(cat.name)}</span>`:''}
+      ${tagPills}
+      ${tags.length>2?`<span class="pill cat-pill">+${tags.length-2}</span>`:''}
+      <span class="card-date">${fmtAgo(n.createdAt)}</span>
+      ${reminderBadge}
+    </div>
+  </div>`;
+}
+
+/* ══════════════════════════════════════════
+   VIEW MODAL
+══════════════════════════════════════════ */
+function openView(id) {
+  const n = notes.find(x => x.id===id);
+  if (!n) return;
+  activeId=id; modalMode='view';
+  const cat = getCat(n.category);
+  const rs  = rStatus(n);
+  const tags = n.tags||[];
+
+  let rBox='';
+  if (n.reminderEnabled && n.reminderTime) {
+    let rc='#534AB7', rb='#EEEDFE';
+    if (rs==='overdue'&&!n.reminderDone){rc='#B5361E';rb='#FDECEA';}
+    if (rs==='done'){rc='#2D6A4F';rb='#E8F5EE';}
+    const lbl = rs==='done'?'Done — was '+fmtDT(n.reminderTime):fmtDT(n.reminderTime);
+    const doneBtn = rs!=='done'
+      ?`<button class="btn-icon" id="done-btn" style="background:${rb};color:${rc}" title="Mark done">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none"><polyline points="20 6 9 17 4 12" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        </button>`:'' ;
+    rBox=`<div class="detail-reminder">
+      <div class="r-circle" style="background:${rb}">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
+          <path d="M18 8a6 6 0 10-12 0c0 7-3 9-3 9h18s-3-2-3-9" stroke="${rc}" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+          <path d="M13.73 21a2 2 0 01-3.46 0" stroke="${rc}" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+      </div>
+      <div style="flex:1">
+        <div style="font-size:10px;font-weight:500;text-transform:uppercase;letter-spacing:.6px;color:${rc};margin-bottom:2px">Reminder</div>
+        <div style="font-size:13px;color:var(--ink2)">${lbl}</div>
+      </div>${doneBtn}</div>`;
+  }
+
+  const tagPillsHTML = tags.map(t=>`<span class="pill hash-pill" style="cursor:pointer" data-tag="${esc(t)}">#${esc(t)}</span>`).join('');
+
+  showModal(`
+    <div class="modal-handle"></div>
+    <div class="modal-header">
+      <div class="modal-title">${esc(n.title)}</div>
+      <button class="btn-icon" id="modal-close">
+        <svg width="12" height="12" viewBox="0 0 12 12" fill="none"><path d="M1 1l10 10M11 1L1 11" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+      </button>
+    </div>
+    <div class="detail-body">
+      <div class="detail-meta">
+        ${cat?`<span class="pill cat-pill"><span class="card-dot" style="background:${cat.color}"></span>${esc(cat.name)}</span>`:''}
+        ${tagPillsHTML}
+        <span style="font-size:11px;color:var(--ink3);margin-left:auto">${fmtAgo(n.createdAt)}</span>
+        ${n.pinned?`<span class="pill cat-pill" style="background:var(--purple-l);color:var(--purple2)">Pinned</span>`:''}
+      </div>
+      ${rBox}
+      <div class="detail-content">${esc(n.body||'')}</div>
+    </div>
+    <div class="detail-actions" id="view-actions">
+      <button class="btn btn-primary" id="edit-btn">Edit</button>
+      <button class="btn-outline" id="pin-btn">${n.pinned?'Unpin':'Pin'}</button>
+      <button class="btn btn-danger" id="del-btn">Delete</button>
+    </div>`);
+
+  document.getElementById('modal-close').onclick = closeModal;
+  document.getElementById('edit-btn').onclick = () => openEdit(id);
+  document.getElementById('pin-btn').onclick = () => {
+    n.pinned=!n.pinned; save(); renderNotes(); openView(id);
+    toast(n.pinned?'Note pinned':'Note unpinned');
+  };
+  document.getElementById('del-btn').onclick = () => confirmDelete(id,'view-actions');
+  const db=document.getElementById('done-btn');
+  if (db) db.onclick = ()=>markDone(id);
+
+  // Clicking a tag in detail view filters by it
+  document.querySelectorAll('[data-tag]').forEach(el => {
+    el.addEventListener('click', e => {
+      e.stopPropagation();
+      activeFilter = '#'+el.dataset.tag;
+      closeModal();
+      renderFilterBar();
+      renderNotes();
+    });
+  });
+}
+
+/* ══════════════════════════════════════════
+   DELETE CONFIRM
+══════════════════════════════════════════ */
+function confirmDelete(id, anchorId) {
+  document.querySelectorAll('.confirm-box').forEach(e=>e.remove());
+  const box=document.createElement('div');
+  box.className='confirm-box';
+  box.innerHTML=`<p>Delete this note? This cannot be undone.</p>
+    <div class="confirm-actions">
+      <button class="btn btn-danger" id="cfm-yes">Yes, delete</button>
+      <button class="btn-outline" id="cfm-no">Cancel</button>
+    </div>`;
+  const anchor=document.getElementById(anchorId);
+  if (anchor) anchor.parentNode.insertBefore(box,anchor);
+  else document.getElementById('modal').appendChild(box);
+  box.scrollIntoView({behavior:'smooth',block:'nearest'});
+  document.getElementById('cfm-yes').onclick=()=>{
+    notes=notes.filter(x=>x.id!==id);
+    save(); closeModal(); renderNotes(); renderFilterBar();
+    toast('Note deleted');
+  };
+  document.getElementById('cfm-no').onclick=()=>box.remove();
+}
+
+/* ══════════════════════════════════════════
+   CATEGORY MANAGER MODAL
+══════════════════════════════════════════ */
+function openCategoryManager() {
+  modalMode='cats';
+  renderCategoryManager();
+}
+function renderCategoryManager() {
+  let catRows = categories.map(cat => {
+    const count = notes.filter(n=>n.category===cat.id).length;
+    return `<div class="cat-row">
+      <span class="cat-row-dot" style="background:${cat.color}"></span>
+      <span class="cat-row-name">${esc(cat.name)}</span>
+      <span class="cat-row-count">${count} note${count!==1?'s':''}</span>
+      <button class="cat-row-del" data-catid="${cat.id}" title="Delete category">✕</button>
+    </div>`;
+  }).join('');
+
+  const colorDots = CAT_COLORS.map((c,i)=>
+    `<div class="cat-dot-pick${i===0?' sel':''}" data-color="${c}" style="background:${c}" data-idx="${i}"></div>`
+  ).join('');
+
+  showModal(`
+    <div class="modal-handle"></div>
+    <div class="modal-header">
+      <div class="modal-title">Categories</div>
+      <button class="btn-icon" id="modal-close">
+        <svg width="12" height="12" viewBox="0 0 12 12" fill="none"><path d="M1 1l10 10M11 1L1 11" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+      </button>
+    </div>
+    <div class="cat-manager">
+      ${catRows}
+      <div style="font-size:12px;font-weight:500;color:var(--ink3);text-transform:uppercase;letter-spacing:.6px;margin-top:4px">Add new category</div>
+      <div class="new-cat-form">
+        <input type="text" class="new-cat-input" id="new-cat-name" placeholder="Category name…" maxlength="24">
+        <button class="btn btn-primary" id="add-cat-btn" style="flex:none;padding:0 16px;height:40px">Add</button>
+      </div>
+      <div class="color-dots" id="color-dots">${colorDots}</div>
+    </div>`);
+
+  document.getElementById('modal-close').onclick = () => { closeModal(); renderFilterBar(); };
+
+  // Delete category
+  document.querySelectorAll('.cat-row-del').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const cid = btn.dataset.catid;
+      if (categories.length <= 1) { toast('You need at least one category.'); return; }
+      // Move notes to first remaining category
+      const remaining = categories.filter(c=>c.id!==cid);
+      notes.forEach(n => { if (n.category===cid) n.category=remaining[0].id; });
+      categories = remaining;
+      saveCats(categories); save();
+      if (activeFilter===cid) activeFilter='all';
+      renderCategoryManager();
+      toast('Category deleted');
+    });
+  });
+
+  // Color picker
+  let selectedColor = CAT_COLORS[0];
+  document.querySelectorAll('.cat-dot-pick').forEach(dot => {
+    dot.addEventListener('click', () => {
+      selectedColor = dot.dataset.color;
+      document.querySelectorAll('.cat-dot-pick').forEach(d=>d.classList.remove('sel'));
+      dot.classList.add('sel');
+    });
+  });
+
+  // Add category
+  document.getElementById('add-cat-btn').addEventListener('click', () => {
+    const name = document.getElementById('new-cat-name').value.trim();
+    if (!name) { toast('Please enter a category name.'); return; }
+    const id = name.toLowerCase().replace(/\s+/g,'-').replace(/[^a-z0-9-]/g,'') + '-' + Date.now();
+    categories.push({ id, name, color: selectedColor });
+    saveCats(categories);
+    renderCategoryManager();
+    toast('Category "'+name+'" added!');
+  });
+
+  document.getElementById('new-cat-name').addEventListener('keydown', e => {
+    if (e.key==='Enter') document.getElementById('add-cat-btn').click();
+  });
+}
+
+/* ══════════════════════════════════════════
+   TEMPLATE PICKER
+══════════════════════════════════════════ */
+const TEMPLATES = [
+  { icon:'📋', name:'Meeting notes', cat:'work', tags:['meeting'],
+    body:'Date: \nAttendees: \n\nAgenda:\n- \n\nAction items:\n- \n\nDecisions made:\n- ' },
+  { icon:'🛒', name:'Shopping list', cat:'shopping', tags:['today'],
+    body:'Items to buy:\n- \n- \n- \n\nBudget: Rs.' },
+  { icon:'💡', name:'Idea capture', cat:'ideas', tags:['idea'],
+    body:'The idea:\n\nWhy it could work:\n\nNext step to explore:\n' },
+  { icon:'📞', name:'Follow-up', cat:'work', tags:['client'],
+    body:'Contact: \nRe: \n\nWhat to discuss:\n- \n\nDeadline: ' },
+  { icon:'📅', name:'Daily plan', cat:'personal', tags:['today'],
+    body:'Top 3 priorities today:\n1. \n2. \n3. \n\nMeetings:\n- \n\nNotes:' },
+  { icon:'✍️', name:'Blank note', cat:'personal', tags:[],
+    body:'' },
+];
+
+function openTemplatePicker() {
+  modalMode = 'template';
+  showModal(`
+    <div class="modal-handle"></div>
+    <div class="modal-header">
+      <div class="modal-title">New note</div>
+      <button class="btn-icon" id="modal-close">
+        <svg width="12" height="12" viewBox="0 0 12 12" fill="none"><path d="M1 1l10 10M11 1L1 11" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+      </button>
+    </div>
+    <div class="template-grid">
+      ${TEMPLATES.map((t,i)=>`
+        <div class="tpl-card" data-tpl="${i}">
+          <div class="tpl-icon">${t.icon}</div>
+          <div class="tpl-name">${t.name}</div>
+          <div class="tpl-desc">${t.tags.map(x=>'#'+x).join(' ')}</div>
+        </div>`).join('')}
+    </div>`);
+
+  document.getElementById('modal-close').onclick = closeModal;
+  document.querySelectorAll('.tpl-card').forEach(card => {
+    card.addEventListener('click', () => {
+      const tpl = TEMPLATES[parseInt(card.dataset.tpl)];
+      openAdd(tpl);
+    });
+  });
+}
+
+/* ══════════════════════════════════════════
+   ADD / EDIT FORM
+══════════════════════════════════════════ */
+function syncDOM() {
+  const t=document.getElementById('f-title'), b=document.getElementById('f-body'), r=document.getElementById('f-rt');
+  if(t) editForm.title=t.value;
+  if(b) {
+    editForm.body=b.value;
+    // Auto-extract tags from #hashtags in body
+    const bodyTags = extractTags(b.value);
+    editForm.tags = [...new Set([...(editForm.manualTags||[]), ...bodyTags])];
+  }
+  if(r) editForm.reminderTime = r.value ? new Date(r.value).toISOString() : '';
+}
+function openAdd(tpl=null) {
+  modalMode='add'; activeId=null;
+  editForm = {
+    title:  tpl ? '' : '',
+    body:   tpl ? tpl.body : '',
+    category: tpl && getCat(tpl.cat) ? tpl.cat : (categories[0]?.id||''),
+    tags:   tpl ? tpl.tags : [],
+    manualTags: tpl ? [...tpl.tags] : [],
+    tint:   'none',
+    pinned: false,
+    reminderEnabled: false,
+    reminderTime: '',
+    reminderDone: false,
+  };
+  renderForm();
+}
+function openEdit(id) {
+  const n=notes.find(x=>x.id===id); if(!n) return;
+  modalMode='edit'; activeId=id;
+  editForm={...n, manualTags:[...(n.tags||[])]};
+  renderForm();
+}
+
+function renderForm() {
+  const isEdit = modalMode==='edit';
+  // Category chips
+  const chips = categories.map(cat => {
+    const s = editForm.category===cat.id;
+    return `<button type="button" class="cat-chip${s?' sel':''}" data-cat="${cat.id}"
+      style="${s?`border-color:${cat.color};color:${cat.color};background:${cat.color}18`:''}"  >
+      <span class="chip-dot" style="background:${cat.color}"></span>${esc(cat.name)}</button>`;
+  }).join('');
+
+  // Tint swatches
+  const swatches = TINTS.map(t => t.id==='none'
+    ? `<div class="color-swatch c-none${editForm.tint==='none'?' sel':''}" data-tint="none" title="No tint"></div>`
+    : `<div class="color-swatch${editForm.tint===t.id?' sel':''}" data-tint="${t.id}" style="background:${t.swatch}" title="${t.label}"></div>`
+  ).join('');
+
+  // Live tags preview
+  const tags = editForm.tags||[];
+  const tagPreview = tags.length
+    ? tags.map(t=>`<span class="pill hash-pill">#${esc(t)}</span>`).join('')
+    : `<span style="font-size:12px;color:var(--ink3)">Tags will appear here as you type #hashtag</span>`;
+
+  showModal(`
+    <div class="modal-handle"></div>
+    <div class="modal-header">
+      <div class="modal-title">${isEdit?'Edit note':'New note'}</div>
+      <button class="btn-icon" id="modal-close">
+        <svg width="12" height="12" viewBox="0 0 12 12" fill="none"><path d="M1 1l10 10M11 1L1 11" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+      </button>
+    </div>
+    <div class="form-body">
+      <div class="form-group">
+        <label class="form-label">Title</label>
+        <input type="text" class="form-input" id="f-title" placeholder="What is this note about?" value="${esc(editForm.title)}" maxlength="120">
+      </div>
+      <div class="form-group">
+        <label class="form-label">Notes — type #tag to add tags</label>
+        <textarea class="form-textarea" id="f-body" rows="5" placeholder="Write here… use #hashtags to tag this note">${esc(editForm.body)}</textarea>
+        <div class="live-tags" id="live-tags">${tagPreview}</div>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Category</label>
+        <div class="cat-chips">${chips}</div>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Note colour</label>
+        <div class="color-picker">${swatches}</div>
+      </div>
+      <div class="toggle-row">
+        <span class="toggle-lbl">Set a reminder</span>
+        <button type="button" class="toggle${editForm.reminderEnabled?' on':''}" id="tog-r"></button>
+      </div>
+      <div id="r-fields" style="display:${editForm.reminderEnabled?'flex':'none'};flex-direction:column;gap:10px">
+        <div class="form-group">
+          <label class="form-label">Remind me at</label>
+          <input type="datetime-local" class="form-input" id="f-rt" value="${toInputVal(editForm.reminderTime)}">
+        </div>
+      </div>
+      <div class="toggle-row">
+        <span class="toggle-lbl">Pin this note</span>
+        <button type="button" class="toggle${editForm.pinned?' on':''}" id="tog-p"></button>
+      </div>
+    </div>
+    <div class="form-actions" id="form-actions">
+      <button class="btn btn-primary" id="save-btn">${isEdit?'Save changes':'Add note'}</button>
+      ${isEdit?`<button class="btn btn-danger" id="del-edit-btn">Delete</button>`:''}
+    </div>`);
+
+  // Close
+  document.getElementById('modal-close').onclick = () => {
+    if(modalMode==='edit') openView(activeId); else closeModal();
+  };
+
+  // Live tag extraction as user types
+  const bodyEl = document.getElementById('f-body');
+  bodyEl.addEventListener('input', () => {
+    const bodyTags = extractTags(bodyEl.value);
+    editForm.tags = [...new Set([...(editForm.manualTags||[]), ...bodyTags])];
+    const liveEl = document.getElementById('live-tags');
+    if (liveEl) {
+      liveEl.innerHTML = editForm.tags.length
+        ? editForm.tags.map(t=>`<span class="pill hash-pill">#${esc(t)}</span>`).join('')
+        : `<span style="font-size:12px;color:var(--ink3)">Tags will appear here as you type #hashtag</span>`;
+    }
+  });
+
+  // Category chips
+  document.querySelectorAll('.cat-chip').forEach(c => {
+    c.addEventListener('click', () => { syncDOM(); editForm.category=c.dataset.cat; renderForm(); });
+  });
+
+  // Tint swatches
+  document.querySelectorAll('.color-swatch').forEach(s => {
+    s.addEventListener('click', () => { syncDOM(); editForm.tint=s.dataset.tint; renderForm(); });
+  });
+
+  // Toggles
+  document.getElementById('tog-r').addEventListener('click', () => {
+    editForm.reminderEnabled=!editForm.reminderEnabled;
+    document.getElementById('tog-r').classList.toggle('on',editForm.reminderEnabled);
+    document.getElementById('r-fields').style.display=editForm.reminderEnabled?'flex':'none';
+  });
+  document.getElementById('tog-p').addEventListener('click', () => {
+    editForm.pinned=!editForm.pinned;
+    document.getElementById('tog-p').classList.toggle('on',editForm.pinned);
+  });
+
+  document.getElementById('save-btn').addEventListener('click', saveNote);
+  const db=document.getElementById('del-edit-btn');
+  if(db) db.addEventListener('click',()=>confirmDelete(activeId,'form-actions'));
+
+  setTimeout(()=>{
+    const ti=document.getElementById('f-title');
+    if(ti){ti.focus();ti.setSelectionRange(ti.value.length,ti.value.length);}
+  },80);
+}
+
+function saveNote() {
+  const tEl=document.getElementById('f-title'), bEl=document.getElementById('f-body'), rEl=document.getElementById('f-rt');
+  const title=tEl?tEl.value.trim():'', body=bEl?bEl.value.trim():'';
+  const rt=rEl&&rEl.value?new Date(rEl.value).toISOString():'';
+
+  // Always re-extract tags from final body content
+  const bodyTags = extractTags(body);
+  const allNoteTags = [...new Set([...(editForm.manualTags||[]), ...bodyTags])];
+
+  if(!title){toast('Please add a title first');if(tEl)tEl.focus();return;}
+  if(editForm.reminderEnabled&&!rt){toast('Please pick a reminder date and time');if(rEl)rEl.focus();return;}
+
+  const now = new Date().toISOString();
+
+  if(modalMode==='edit'){
+    const n=notes.find(x=>x.id===activeId);
+    if(n){
+      n.title=title; n.body=body; n.tags=allNoteTags;
+      n.category=editForm.category; n.pinned=editForm.pinned; n.tint=editForm.tint||'none';
+      n.reminderEnabled=editForm.reminderEnabled;
+      n.reminderTime=editForm.reminderEnabled?rt:'';
+      n.reminderDone=editForm.reminderEnabled?(editForm.reminderDone||false):false;
+      n.updatedAt=now;
+      scheduleOne(n);
+    }
+    save(); renderNotes(); renderFilterBar(); openView(activeId);
+    toast('Note saved!');
+  } else {
+    const n={
+      id:nextId++, title, body, tags:allNoteTags,
+      category:editForm.category, pinned:editForm.pinned, tint:editForm.tint||'none',
+      reminderEnabled:editForm.reminderEnabled,
+      reminderTime:editForm.reminderEnabled?rt:'',
+      reminderDone:false,
+      createdAt:now, updatedAt:now,
+    };
+    notes.unshift(n); scheduleOne(n);
+    save(); renderNotes(); renderFilterBar(); closeModal();
+    toast('Note added!');
+  }
+}
+
+/* ══════════════════════════════════════════
+   MARK REMINDER DONE
+══════════════════════════════════════════ */
+function markDone(id) {
+  const n=notes.find(x=>x.id===id); if(!n) return;
+  n.reminderDone=true;
+  if(timers[id]){clearTimeout(timers[id]);delete timers[id];}
+  save(); renderNotes(); renderFilterBar();
+  if(activeId===id) openView(id);
+  toast('Reminder marked done!');
+}
+
+/* ══════════════════════════════════════════
+   IN-APP POPUP
+══════════════════════════════════════════ */
+function showInApp(n) {
+  document.getElementById('inapp-title').textContent=n.title;
+  document.getElementById('inapp-body').textContent=n.body?n.body.slice(0,80)+(n.body.length>80?'…':''):'Tap to view.';
+  const el=document.getElementById('inapp-notif');
+  el._nid=n.id; el.classList.add('show');
+  setTimeout(()=>el.classList.remove('show'),8000);
+}
+
+/* ══════════════════════════════════════════
+   NOTIFICATIONS (swReg.showNotification)
+══════════════════════════════════════════ */
+async function initNotifications() {
+  if('serviceWorker' in navigator){
+    try {
+      await navigator.serviceWorker.register('./sw.js',{scope:'./'});
+      swReg = await navigator.serviceWorker.ready;
+      console.log('[Notes] SW active');
+      navigator.serviceWorker.addEventListener('message',e=>{
+        if(!e.data) return;
+        if(e.data.type==='OPEN_NOTE') openView(Number(e.data.noteId));
+        // New SW activated — reload silently to get latest version
+        if(e.data.type==='SW_UPDATED') {
+          console.log('[Notes] New version available, reloading...');
+          window.location.reload();
+        }
+      });
+      const openId=new URLSearchParams(location.search).get('open');
+      if(openId){openView(Number(openId));history.replaceState({},'',location.pathname);}
+    } catch(err){ console.error('[Notes] SW failed:',err); }
+  }
+  updateBanner();
+  if('Notification' in window && Notification.permission==='granted'){
+    scheduleAll(); fireOverdue();
+  }
+}
+function updateBanner(){
+  if(!('Notification' in window)) return;
+  const banner=document.getElementById('banner');
+  const perm=Notification.permission;
+  banner.className=perm; banner.style.display='block';
+  document.getElementById('btn-allow').style.display = perm==='default' ?'':'none';
+  document.getElementById('btn-test').style.display  = perm==='granted' ?'':'none';
+  if(perm==='default') document.getElementById('banner-msg').textContent='Turn on reminders to get desktop pop-ups even when this tab is in the background.';
+  if(perm==='granted') document.getElementById('banner-msg').textContent='Reminders are on. Click "Send test" to confirm it works on your device.';
+  if(perm==='denied')  document.getElementById('banner-msg').textContent='Notifications blocked. Click the lock icon in your address bar → Notifications → Allow → reload.';
+}
+async function askPermission(){
+  const result=await Notification.requestPermission();
+  updateBanner();
+  if(result==='granted'){
+    if('serviceWorker' in navigator) swReg=await navigator.serviceWorker.ready;
+    scheduleAll(); fireOverdue();
+    await fireNotif({id:0,title:'My Notes — Reminders are on!',body:'You will see pop-ups like this when a reminder is due.'},false);
+    toast('Reminders are on!');
+  } else {
+    toast(result==='denied'?'Blocked. Click the lock icon → Notifications → Allow.':'Permission not granted.');
+  }
+}
+async function sendTest(){
+  if(Notification.permission!=='granted'){toast('Click "Turn on reminders" first.');return;}
+  if('serviceWorker' in navigator) swReg=await navigator.serviceWorker.ready;
+  await fireNotif({id:0,title:'My Notes — Test ✓',body:'Notifications are working!'},false);
+  toast('Test sent — check your desktop!');
+}
+async function fireNotif(note, requireInteraction){
+  if(Notification.permission!=='granted') return;
+  const opts={
+    body:note.body?note.body.slice(0,120):'Tap to open.',
+    icon:'./icon.png', badge:'./icon.png',
+    tag:'note-'+note.id, data:{noteId:note.id},
+    requireInteraction: requireInteraction!==false,
+  };
+  try {
+    if(swReg&&swReg.active){ await swReg.showNotification(note.title,opts); }
+    else { const n=new Notification(note.title,opts); n.onclick=()=>{window.focus();if(note.id)openView(note.id);n.close();}; }
+  } catch(err){ console.error('[Notes] Notification failed:',err); toast('Notification error: '+err.message); }
+}
+function scheduleAll(){ for(const n of notes) scheduleOne(n); }
+function scheduleOne(note){
+  if(timers[note.id]){clearTimeout(timers[note.id]);delete timers[note.id];}
+  if(!note.reminderEnabled||note.reminderDone||!note.reminderTime) return;
+  if(Notification.permission!=='granted') return;
+  const delay=new Date(note.reminderTime).getTime()-Date.now();
+  if(delay<0) return;
+  timers[note.id]=setTimeout(async()=>{
+    delete timers[note.id];
+    const fresh=notes.find(x=>x.id===note.id);
+    if(!fresh||fresh.reminderDone) return;
+    await fireNotif(fresh,true); showInApp(fresh);
+  },delay);
+}
+function fireOverdue(){
+  const now=Date.now();
+  for(const n of notes){
+    if(!n.reminderEnabled||n.reminderDone||!n.reminderTime) continue;
+    const rt=new Date(n.reminderTime).getTime();
+    if(rt<now&&rt>now-8*3600000){ fireNotif(n,true); showInApp(n); break; }
+  }
+}
+
+/* ══════════════════════════════════════════
+   EVENTS
+══════════════════════════════════════════ */
+document.getElementById('fab-add').addEventListener('click', openTemplatePicker);
+/* Search input — live filter + dropdown */
+const searchEl = document.getElementById('search');
+const searchDropEl = document.getElementById('search-dropdown');
+const searchWrap = searchEl.closest('.search-wrap');
+
+function recentNotes(limit=5) {
+  return [...notes]
+    .filter(n => n.title)
+    .sort((a,b) => new Date(b.updatedAt||b.createdAt) - new Date(a.updatedAt||a.createdAt))
+    .slice(0, limit);
+}
+
+function renderSearchDropdown() {
+  const recent = recentNotes(5);
+  if (!recent.length) { searchDropEl.classList.remove('show'); return; }
+  searchDropEl.innerHTML =
+    `<div class="search-drop-label">Recently edited</div>` +
+    recent.map(n => {
+      const cat = getCat(n.category);
+      return `<div class="search-drop-item" data-id="${n.id}">
+        <span class="search-drop-dot" style="background:${cat?cat.color:'#9D93C0'}"></span>
+        <span class="search-drop-title">${esc(n.title)}</span>
+        <span class="search-drop-time">${fmtAgo(n.updatedAt||n.createdAt)}</span>
+      </div>`;
+    }).join('');
+  searchDropEl.classList.add('show');
+  searchEl.classList.add('has-dropdown');
+  searchWrap.classList.add('focused');
+
+  searchDropEl.querySelectorAll('.search-drop-item').forEach(item => {
+    item.addEventListener('mousedown', e => {
+      e.preventDefault(); // prevent blur firing before click
+      hideSearchDropdown();
+      openView(parseInt(item.dataset.id));
+    });
+  });
+}
+
+function hideSearchDropdown() {
+  searchDropEl.classList.remove('show');
+  searchEl.classList.remove('has-dropdown');
+  searchWrap.classList.remove('focused');
+}
+
+searchEl.addEventListener('focus', () => {
+  if (!searchEl.value) renderSearchDropdown();
+});
+searchEl.addEventListener('blur', () => {
+  // Small delay so mousedown on item fires first
+  setTimeout(hideSearchDropdown, 150);
+});
+searchEl.addEventListener('input', e => {
+  searchQ = e.target.value;
+  if (searchQ) hideSearchDropdown();
+  else if (document.activeElement === searchEl) renderSearchDropdown();
+  renderNotes();
+});
+document.getElementById('overlay').addEventListener('click', e => {
+  if(e.target===document.getElementById('overlay')){
+    if(modalMode==='edit') openView(activeId); else closeModal();
+  }
+});
+document.addEventListener('keydown', e => {
+  if(e.key==='Escape'&&document.getElementById('overlay').classList.contains('open')){
+    if(modalMode==='edit') openView(activeId); else closeModal();
+  }
+});
+document.getElementById('btn-allow').addEventListener('click', askPermission);
+document.getElementById('btn-test').addEventListener('click', sendTest);
+document.getElementById('btn-dismiss').addEventListener('click', ()=>document.getElementById('banner').style.display='none');
+document.getElementById('inapp-notif').addEventListener('click', function(e){
+  if(e.target.closest('#inapp-close')) return;
+  this.classList.remove('show'); if(this._nid) openView(this._nid);
+});
+document.getElementById('inapp-close').addEventListener('click', ()=>document.getElementById('inapp-notif').classList.remove('show'));
+
+/* ══════════════════════════════════════════
+   INIT
+══════════════════════════════════════════ */
+renderFilterBar();
+renderNotes();
+initNotifications();
+</script>
+</body>
+</html>
